@@ -1,4 +1,4 @@
-from flask import request, session, make_response
+from flask import request, session, make_response, jsonify
 from flask_restful import Resource
 
 from config import app, db, api
@@ -90,11 +90,48 @@ class BlogIndex(Resource):
         db.session.add(blog)
         db.session.commit()
 
-        response_dict = blog.to_dict()
+        response = make_response(
+            blog.to_dict(),
+            200
+        )
+
+        return response
+
+
+class BlogByUser(Resource):
+
+    def get(self, id):
+        blog = Blog.query.filter_by(id=id).first().to_dict()
+        return make_response(jsonify(blog), 200)
+    
+    def patch(self, id):
+        data = request.get_json()
+
+        blog = Blog.query.filter_by(id=id).first()
+        for attr in data:
+            setattr(blog, attr, data[attr])
+        
+        db.session.add(blog)
+        db.session.commit()
 
         response = make_response(
-            response_dict,
+            blog.to_dict(),
             200
+        )
+
+        return response
+    
+    def delete(self, id):
+
+        blog = Blog.query.filter_by(id=id).first()
+
+        db.session.delete(blog)
+        db.session.commit()
+
+
+        response = make_response(
+            "Deleted",
+            204
         )
 
         return response
@@ -106,6 +143,7 @@ api.add_resource(CheckSession, '/check_session', endpoint='check_session')
 api.add_resource(Login, '/login', endpoint='login')
 api.add_resource(Logout, '/logout', endpoint='logout')
 api.add_resource(BlogIndex, '/blog', endpoint='blog')
+api.add_resource(BlogByUser, '/blog/<int:id>')
 
 if __name__ == '__main__':
     app.run(port=5555, debug=True)
