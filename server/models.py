@@ -1,19 +1,13 @@
 from sqlalchemy_serializer import SerializerMixin
 from sqlalchemy.ext.hybrid import hybrid_property
-from cryptography.fernet import Fernet
 
-from config import db, bcrypt, secret_key, metadata
+from config import db, bcrypt, metadata
 
-cipher = Fernet(secret_key)
 
 
 class User(db.Model, SerializerMixin):
     __tablename__ = 'users'
-    __table_args__ = (
-        "-_password_hash",
-       " -favorites",
-        "-blog",
-    )
+
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String, unique=True, nullable=False)
     _password_hash = db.Column(db.String)
@@ -21,6 +15,7 @@ class User(db.Model, SerializerMixin):
     has_blog = db.Column(db.Boolean, default=False)
 
     blog = db.relationship('Blog', secondary='post_engagement', backref='users')
+    post = db.relationship('Post', secondary='post_engagement', backref='users')
     favorites = db.relationship('Favorite', backref='users')
     
     def __repr__(self):
@@ -43,16 +38,14 @@ class User(db.Model, SerializerMixin):
 
 class Blog(db.Model, SerializerMixin):
     __tablename__ = 'blogs'
-    __table_args__ = (
-        "-post",
-    )
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, nullable=False)
     description = db.Column(db.String, nullable=False)
 
-    user = db.relationship('User', backref='Blog')
-    post = db.relationship('Post',secondary='post_engagement', backref='blogs')
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    user = db.relationship('User', backref='blogs')
+    post = db.relationship('Post', secondary='post_engagement', backref='blogs')
 
     def __repr__(self):
         return f'Title: {self.title}, Content: {self.content}, Author ID: {self.user_id}'
@@ -66,6 +59,9 @@ class Post(db.Model, SerializerMixin):
     description = db.Column(db.String, nullable=False)
     content = db.Column(db.String, nullable=False)
 
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+
+    user = db.relationship('User', backref='posts')
     blog = db.relationship("Blog", secondary='post_engagement', backref='posts')
 
     def __repr__(self):

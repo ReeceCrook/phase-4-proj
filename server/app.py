@@ -57,7 +57,7 @@ class Logout(Resource):
 class BlogIndex(Resource):
     def get(self):
         if session['user_id']:
-           return Blog.query.filter(id=session['user_id']).first().to_dict(), 200
+           return Blog.query.filter(user_id=session['user_id']).all().to_dict(), 200
         
         return {"Message": "User not logged in"}, 401
     
@@ -81,35 +81,19 @@ class BlogIndex(Resource):
         
         return {"Message": "User not logged in"}, 401
 
-    def patch(self, id):
 
-        blog = Blog.query.filter(id=id).first()
-        for attr in request.form:
-            setattr(blog, attr, request.form[attr])
-
-        db.session.add(blog)
-        db.session.commit()
-
-        response = make_response(
-            blog.to_dict(),
-            200
-        )
-
-        return response
-
-
-class BlogByUser(Resource):
+class BlogByID(Resource):
 
     def get(self, id):
-        blog = Blog.query.filter_by(id=id).first().to_dict()
+        blog = Blog.query.filter(id=id).first().to_dict()
         return make_response(jsonify(blog), 200)
     
     def patch(self, id):
-        data = request.get_json()
+        json = request.get_json()
 
-        blog = Blog.query.filter_by(id=id).first()
-        for attr in data:
-            setattr(blog, attr, data[attr])
+        blog = Blog.query.filter(id=id).first()
+        for attr in json:
+            setattr(blog, attr, json[attr])
         
         db.session.add(blog)
         db.session.commit()
@@ -122,8 +106,7 @@ class BlogByUser(Resource):
         return response
     
     def delete(self, id):
-
-        blog = Blog.query.filter_by(id=id).first()
+        blog = Blog.query.filter(id=id).first()
 
         db.session.delete(blog)
         db.session.commit()
@@ -136,14 +119,147 @@ class BlogByUser(Resource):
 
         return response
 
+class PostIndex(Resource):
+    def get(self):
+        if session['user_id']:
+            return Post.query.filter(user_id=id).all().to_dict(), 200
+        
+        return {"Message": "User not logged in"}, 401
+    
+    def post(self):
+        user = User.query.filter(id=session['user_id']).first()
+        json = request.get_json()
+        if session['user_id'] and user.has_blog == True:
+            post = Post(
+                title = json.get("title"),
+                description = json.get("description"),
+                content = json.get("content"),
+            )
+            
+            if post and len(post.description) <= 150:
+                db.session.add(post)
+                db.session.commit()
+                return post.to_dict(), 201
+            
+            return {"Message": "One or more fields are invalid"}, 422
+        
+        return {"Message": "User not logged in"}, 401
+
+class PostByID(Resource):
+
+    def get(self, id):
+        if session["user_id"]:
+            post = Post.query.filter(id=id).first().to_dict()
+            return make_response(jsonify(post), 200)
+        
+    def patch(self, id):
+        json = request.get_json()
+        post = Post.query.filter(id=id).first()
+        for attr in json:
+            setattr(post, attr, json[attr])
+        
+        db.session.add(post)
+        db.session.commit()
+
+        response = make_response(
+            post.to_dict(),
+            200
+        )
+
+        return response
+    
+    def delete(self, id):
+
+        post = Post.query.filter(id=id).first()
+
+        db.session.delete(post)
+        db.session.commit()
+
+
+        response = make_response(
+            "Deleted",
+            204
+        )
+
+        return response
+
+
+class FavoriteIndex(Resource):
+    def get(self):
+        if session['user_id']:
+           return Favorite.query.filter(user_id=session['user_id']).all().to_dict(), 200
+        
+        return {"Message": "User not logged in"}, 401
+    
+    def post(self):
+        json = request.get_json()
+        if session['user_id']:
+            favorite = Favorite(
+                favorite_blog_id = json.get("favorite_blog_id"),
+                user_id = session['user_id']
+            )
+            
+            if favorite and favorite.favorite_blog_id == int:
+                db.session.add(favorite)
+                db.session.commit()
+                return favorite.to_dict(), 201
+            
+            return {"Message": "One or more fields are invalid"}, 422
+        
+        return {"Message": "User not logged in"}, 401
+
+class FavoriteByID(Resource):
+
+    def get(self, id):
+        if session["user_id"]:
+            favorite = Favorite.query.filter(id=id).all().to_dict()
+            return make_response(jsonify(favorite), 200)
+        
+    def patch(self, id):
+        json = request.get_json()
+        favorite = Favorite.query.filter(id=id).first()
+        for attr in json:
+            setattr(favorite, attr, json[attr])
+        
+        db.session.add(favorite)
+        db.session.commit()
+
+        response = make_response(
+            favorite.to_dict(),
+            200
+        )
+
+        return response
+    
+    def delete(self, id):
+
+        favorite = Favorite.query.filter(id=id).first()
+
+        db.session.delete(favorite)
+        db.session.commit()
+
+
+        response = make_response(
+            "Deleted",
+            204
+        )
+
+        return response
 
 
 api.add_resource(Signup, '/signup', endpoint='signup')
 api.add_resource(CheckSession, '/check_session', endpoint='check_session')
 api.add_resource(Login, '/login', endpoint='login')
 api.add_resource(Logout, '/logout', endpoint='logout')
+
 api.add_resource(BlogIndex, '/blog', endpoint='blog')
-api.add_resource(BlogByUser, '/blog/<int:id>')
+api.add_resource(BlogByID, '/blog/<int:id>')
+
+api.add_resource(PostIndex, '/post', endpoint='post')
+api.add_resource(PostByID, '/post/<int:id>')
+
+api.add_resource(FavoriteIndex, '/favorite', endpoint='favorite')
+api.add_resource(FavoriteByID, '/favorite/<int:id>')
 
 if __name__ == '__main__':
     app.run(port=5555, debug=True)
