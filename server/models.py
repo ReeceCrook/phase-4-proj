@@ -3,23 +3,28 @@ from sqlalchemy.ext.hybrid import hybrid_property
 
 from config import db, bcrypt, metadata
 
-
+shared_blog = db.Table('shared_blog', metadata,
+    db.Column('user_id', db.Integer, db.ForeignKey('users.id'), primary_key=True),
+    db.Column('blog_id', db.Integer, db.ForeignKey('blogs.id'), primary_key=True),
+    db.Column('primary_owner', db.String),
+    db.Column('co_owner', db.String),
+)
 
 class User(db.Model, SerializerMixin):
     __tablename__ = 'users'
 
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String, unique=True, nullable=False)
-    _password_hash = db.Column(db.String)
+    _password_hash = db.Column(db.String, nullable=False)
     image_url = db.Column(db.String, nullable=False)
     has_blog = db.Column(db.Boolean, default=False)
 
-    blog = db.relationship('Blog', secondary='post_engagement', backref='users')
-    post = db.relationship('Post', secondary='post_engagement', backref='users')
+    blogs = db.relationship('Blog', secondary='shared_blog', back_populates='users')
+    posts = db.relationship('Post', backref='users')
     favorites = db.relationship('Favorite', backref='users')
     
     def __repr__(self):
-        return f'User {self.username}, ID: {self.id}, Amount of favorites: {len(self.favorites)}, Amount of suggestions: {len(self.suggestions)}'
+        return f'User {self.username}, ID: {self.id}, Image URL: {self.image_url}, Amount of favorites: {len(self.favorites)}'
     
     @hybrid_property
     def password_hash(self):
@@ -43,9 +48,8 @@ class Blog(db.Model, SerializerMixin):
     name = db.Column(db.String, nullable=False)
     description = db.Column(db.String, nullable=False)
 
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
-    user = db.relationship('User', backref='blogs')
-    post = db.relationship('Post', secondary='post_engagement', backref='blogs')
+    users = db.relationship('User', secondary='shared_blog', back_populates='blogs')
+    post = db.relationship('Post', backref='blogs')
 
     def __repr__(self):
         return f'Title: {self.title}, Content: {self.content}, Author ID: {self.user_id}'
@@ -61,27 +65,20 @@ class Post(db.Model, SerializerMixin):
 
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
 
-    user = db.relationship('User', backref='posts')
-    blog = db.relationship("Blog", secondary='post_engagement', backref='posts')
+    blog_id = db.Column(db.Integer, db.ForeignKey('blogs.id'))
 
     def __repr__(self):
         return f'Title: {self.title}, Description: {self.description}, Author ID: {self.blog_id}'
 
-post_engagement = db.Table('post_engagement', metadata,
-    db.Column('user_id', db.Integer, db.ForeignKey('users.id'), primary_key=True),
-    db.Column('post_id', db.Integer, db.ForeignKey('posts.id'), primary_key=True),
-    db.Column('likes', db.Integer, default=0),
-    db.Column('dislikes', db.Integer, default=0),
-    db.Column('comments', db.String, nullable=False)
-)
+
 
 class Favorite(db.Model, SerializerMixin):
     __tablename__ = 'favorites'
 
     id = db.Column(db.Integer, primary_key=True)
-    favorite_blog_id = db.Column(db.Integer, nullable=False, unique=True)
+    favorite_blog_id = db.Column(db.Integer, nullable=False)
 
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
 
     def __repr__(self):
         return f'ID: {self.id}, Original listing URL: {self.original_listing_url}'
