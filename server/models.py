@@ -1,5 +1,6 @@
 from sqlalchemy_serializer import SerializerMixin
 from sqlalchemy.ext.hybrid import hybrid_property
+from datetime import datetime
 
 from config import db, bcrypt, metadata
 
@@ -18,13 +19,14 @@ class User(db.Model, SerializerMixin):
     _password_hash = db.Column(db.String, nullable=False)
     image_url = db.Column(db.String, nullable=False)
     has_blog = db.Column(db.Boolean, default=False)
+    date_joined = db.Column(db.DateTime, default=datetime.utcnow)
 
     blogs = db.relationship('Blog', secondary='shared_blog', back_populates='users')
     posts = db.relationship('Post', backref='users')
     favorites = db.relationship('Favorite', backref='users')
     
     def __repr__(self):
-        return f'User {self.username}, ID: {self.id}, Image URL: {self.image_url}, Amount of favorites: {len(self.favorites)}'
+        return f'User {self.username}, ID: {self.id}, Date Created: {self.date_joined}, Image URL: {self.image_url}, Amount of favorites: {len(self.favorites)}'
     
     @hybrid_property
     def password_hash(self):
@@ -47,12 +49,13 @@ class Blog(db.Model, SerializerMixin):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, nullable=False)
     description = db.Column(db.String, nullable=False)
+    date_created = db.Column(db.DateTime, default=datetime.utcnow)
 
     users = db.relationship('User', secondary='shared_blog', back_populates='blogs')
     post = db.relationship('Post', backref='blogs')
 
     def __repr__(self):
-        return f'Title: {self.title}, Content: {self.content}, Author ID: {self.user_id}'
+        return f'Title: {self.name}, Description: {self.description}, Date Created: {self.date_created}'
 
 
 class Post(db.Model, SerializerMixin):
@@ -62,13 +65,14 @@ class Post(db.Model, SerializerMixin):
     title = db.Column(db.String, nullable=False)
     description = db.Column(db.String, nullable=False)
     content = db.Column(db.String, nullable=False)
+    date_created = db.Column(db.DateTime, default=datetime.utcnow)
 
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
 
     blog_id = db.Column(db.Integer, db.ForeignKey('blogs.id'))
 
     def __repr__(self):
-        return f'Title: {self.title}, Description: {self.description}, Author ID: {self.blog_id}'
+        return f'Title: {self.title}, Description: {self.description}, Author ID: {self.user_id} Date Created: {self.date_created}'
 
 
 
@@ -77,10 +81,11 @@ class Favorite(db.Model, SerializerMixin):
 
     id = db.Column(db.Integer, primary_key=True)
     favorite_blog_id = db.Column(db.Integer, nullable=False)
+    date_added = db.Column(db.DateTime, default=datetime.utcnow)
 
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
 
     def __repr__(self):
-        return f'ID: {self.id}, Original listing URL: {self.original_listing_url}'
+        return f'ID: {self.id}, Original listing URL: {self.favorite_blog_id}, Date Added: {self.date_added}'
     
 

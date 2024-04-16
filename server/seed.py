@@ -44,7 +44,9 @@ with app.app_context():
     # Many-to-many relationship
 
     user1.blogs.append(blog1)
-    user2.blogs.append(blog2)
-    blog1.users.append(user1)
+    user1.blogs.append(blog2)
+    
     blog2.users.append(user2)
+    blog2.users.append(user3)
+    blog2.users.append(user4)
     db.session.commit()
