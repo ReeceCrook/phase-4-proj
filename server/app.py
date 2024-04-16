@@ -2,7 +2,7 @@ from flask import request, session, make_response, jsonify
 from flask_restful import Resource
 
 from config import app, db, api
-from models import User, Blog, Post, Favorite, post_engagement
+from models import User, Blog, Post, Favorite
 
 class Signup(Resource):
     def post(self):
@@ -56,10 +56,7 @@ class Logout(Resource):
     
 class UserIndex(Resource):
     def get(self):
-        if session['user_id']:
-           return User.query.filter(id=session['user_id']).first().to_dict(), 200
-        
-        return {"Message": "User not logged in"}, 401
+        return User.query.all().to_dict(), 200
     
     def post(self):
         json = request.get_json()
@@ -82,13 +79,13 @@ class UserIndex(Resource):
 class UserByID(Resource):
 
     def get(self, id):
-        user = User.query.filter(id=id).first().to_dict()
+        user = User.query.filter(User.id == id).first().to_dict()
         return make_response(jsonify(user), 200)
     
     def patch(self, id):
         json = request.get_json()
 
-        user = User.query.filter(id=id).first()
+        user = User.query.filter(User.id == id).first()
         for attr in json:
             setattr(user, attr, json[attr])
         
@@ -104,7 +101,7 @@ class UserByID(Resource):
     
     def delete(self, id):
         if session['user_id'] == id:
-            user = User.query.filter(id=id).first()
+            user = User.query.filter(User.id == id).first()
 
             db.session.delete(user)
             db.session.commit()
@@ -120,13 +117,10 @@ class UserByID(Resource):
 
 class BlogIndex(Resource):
     def get(self):
-        if session['user_id']:
-           return Blog.query.filter(user_id=session['user_id']).all().to_dict(), 200
+        return Blog.query.all().to_dict(), 200
         
-        return {"Message": "User not logged in"}, 401
-    
     def post(self):
-        user = User.query.filter(id=session['user_id']).first()
+        user = User.query.filter(User.id == session['user_id']).first()
         json = request.get_json()
         if session['user_id'] and user.has_blog == False:
             user.has_blog = True
@@ -149,13 +143,13 @@ class BlogIndex(Resource):
 class BlogByID(Resource):
 
     def get(self, id):
-        blog = Blog.query.filter(id=id).first().to_dict()
+        blog = Blog.query.filter(Blog.id == id).first().to_dict()
         return make_response(jsonify(blog), 200)
     
     def patch(self, id):
         json = request.get_json()
 
-        blog = Blog.query.filter(id=id).first()
+        blog = Blog.query.filter( Blog.id == id).first()
         for attr in json:
             setattr(blog, attr, json[attr])
         
@@ -170,7 +164,7 @@ class BlogByID(Resource):
         return response
     
     def delete(self, id):
-        blog = Blog.query.filter(id=id).first()
+        blog = Blog.query.filter(Blog.id == id).first()
 
         db.session.delete(blog)
         db.session.commit()
@@ -185,13 +179,10 @@ class BlogByID(Resource):
 
 class PostIndex(Resource):
     def get(self):
-        if session['user_id']:
-            return Post.query.filter(user_id=id).all().to_dict(), 200
+        return Post.query.all().to_dict(), 200
         
-        return {"Message": "User not logged in"}, 401
-    
     def post(self):
-        user = User.query.filter(id=session['user_id']).first()
+        user = User.query.filter(User.id == session['user_id']).first()
         json = request.get_json()
         if session['user_id'] and user.has_blog == True:
             post = Post(
@@ -213,12 +204,12 @@ class PostByID(Resource):
 
     def get(self, id):
         if session["user_id"]:
-            post = Post.query.filter(id=id).first().to_dict()
+            post = Post.query.filter(Post.id == id).first().to_dict()
             return make_response(jsonify(post), 200)
         
     def patch(self, id):
         json = request.get_json()
-        post = Post.query.filter(id=id).first()
+        post = Post.query.filter(Post.id == id).first()
         for attr in json:
             setattr(post, attr, json[attr])
         
@@ -234,7 +225,7 @@ class PostByID(Resource):
     
     def delete(self, id):
 
-        post = Post.query.filter(id=id).first()
+        post = Post.query.filter(Post.id == id).first()
 
         db.session.delete(post)
         db.session.commit()
@@ -247,11 +238,10 @@ class PostByID(Resource):
 
         return response
 
-
 class FavoriteIndex(Resource):
     def get(self):
         if session['user_id']:
-           return Favorite.query.filter(user_id=session['user_id']).all().to_dict(), 200
+           return Favorite.query.filter(Favorite.user_id == session['user_id']).all().to_dict(), 200
         
         return {"Message": "User not logged in"}, 401
     
@@ -276,12 +266,12 @@ class FavoriteByID(Resource):
 
     def get(self, id):
         if session["user_id"]:
-            favorite = Favorite.query.filter(id=id).all().to_dict()
-            return make_response(jsonify(favorite), 200)
+            favorites = Favorite.query.filter(Favorite.id == id).all().to_dict()
+            return make_response(jsonify(favorites), 200)
         
     def patch(self, id):
         json = request.get_json()
-        favorite = Favorite.query.filter(id=id).first()
+        favorite = Favorite.query.filter(Favorite.id == id).first()
         for attr in json:
             setattr(favorite, attr, json[attr])
         
@@ -297,7 +287,7 @@ class FavoriteByID(Resource):
     
     def delete(self, id):
 
-        favorite = Favorite.query.filter(id=id).first()
+        favorite = Favorite.query.filter(Favorite.id == id).first()
 
         db.session.delete(favorite)
         db.session.commit()
