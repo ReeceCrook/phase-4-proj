@@ -13,13 +13,18 @@ shared_blog = db.Table('shared_blog', metadata,
 
 class User(db.Model, SerializerMixin):
     __tablename__ = 'users'
+    serialize_rules = (
+        "-_password_hash",
+        "-blogs",
+        "-posts",
+        "-favorites"
+    )
 
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String, unique=True, nullable=False)
     _password_hash = db.Column(db.String, nullable=False)
     image_url = db.Column(db.String, nullable=False)
-    has_blog = db.Column(db.Boolean, default=False)
-    date_joined = db.Column(db.DateTime, default=datetime.utcnow)
+    date_joined = db.Column(db.DateTime, default=datetime.now())
 
     blogs = db.relationship('Blog', secondary='shared_blog', back_populates='users')
     posts = db.relationship('Post', backref='users')
@@ -49,7 +54,7 @@ class Blog(db.Model, SerializerMixin):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, nullable=False)
     description = db.Column(db.String, nullable=False)
-    date_created = db.Column(db.DateTime, default=datetime.utcnow)
+    date_created = db.Column(db.DateTime, default=datetime.now())
 
     users = db.relationship('User', secondary='shared_blog', back_populates='blogs')
     post = db.relationship('Post', backref='blogs')
@@ -65,7 +70,7 @@ class Post(db.Model, SerializerMixin):
     title = db.Column(db.String, nullable=False)
     description = db.Column(db.String, nullable=False)
     content = db.Column(db.String, nullable=False)
-    date_created = db.Column(db.DateTime, default=datetime.utcnow)
+    date_created = db.Column(db.DateTime, default=datetime.now())
 
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
 
@@ -81,7 +86,7 @@ class Favorite(db.Model, SerializerMixin):
 
     id = db.Column(db.Integer, primary_key=True)
     favorite_blog_id = db.Column(db.Integer, nullable=False)
-    date_added = db.Column(db.DateTime, default=datetime.utcnow)
+    date_added = db.Column(db.DateTime, default=datetime.now())
 
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
 

@@ -13,13 +13,17 @@ with app.app_context():
 
     # Add Users
     user1 = User(username="Uri Lee", image_url='totally_a_url1')
-    user1._password_hash="password1"
+    user1.password_hash="password1"
+
     user2 = User(username="Tristan Tal", image_url='totally_a_url2')
-    user2._password_hash="password2"
+    user2.password_hash="password2"
+
     user3 = User(username="Sasha Hao", image_url='totally_a_url3')
-    user3._password_hash="password3"
+    user3.password_hash="password3"
+
     user4 = User(username="Taylor Jai", image_url='totally_a_url4')
-    user4._password_hash="password4"
+    user4.password_hash="password4"
+
     db.session.add_all([user1, user2, user3, user4])
     db.session.commit()
 

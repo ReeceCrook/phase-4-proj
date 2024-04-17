@@ -10,7 +10,6 @@ class Signup(Resource):
         user = User(
             username=json.get('username'),
             image_url=json.get('image_url'),
-            bio=json.get('bio')
         )
         user.password_hash = json.get('password')
         if user and user.username:
@@ -26,7 +25,7 @@ class Signup(Resource):
 
 class CheckSession(Resource):
     def get(self):
-        if session['user_id']:
+        if 'user_id' in session and session['user_id'] != None:
             user = User.query.filter(User.id == session["user_id"]).first()
             return user.to_dict(), 200
         
@@ -41,13 +40,13 @@ class Login(Resource):
         user = User.query.filter(User.username == username).first()
         if user and user.authenticate(password):
             session['user_id'] = user.id
-            return user.to_dict()
+            return user.to_dict(), 200
         
         return {"Message": "User not found"}, 401
 
 class Logout(Resource):
     def delete(self):
-        if session['user_id']:
+        if 'user_id' in session:
 
             session['user_id'] = None
             return {}, 204
@@ -58,23 +57,23 @@ class UserIndex(Resource):
     def get(self):
         return User.query.all().to_dict(), 200
     
-    def post(self):
-        json = request.get_json()
-        if session['user_id']:
-            user = User(
-                username = json.get("username"),
-                image_url = json.get("image_url"),
-                _password_hash = json.get("password"),
-            )
+    # def post(self):
+    #     json = request.get_json()
+    #     if 'user_id' in session:
+    #         user = User(
+    #             username = json.get("username"),
+    #             image_url = json.get("image_url"),
+    #             _password_hash = json.get("password"),
+    #         )
             
-            if user and len(user.username) <= 20:
-                db.session.add(user)
-                db.session.commit()
-                return user.to_dict(), 201
+    #         if user and len(user.username) <= 20:
+    #             db.session.add(user)
+    #             db.session.commit()
+    #             return user.to_dict(), 201
             
-            return {"Message": "One or more fields are invalid"}, 422
+    #         return {"Message": "One or more fields are invalid"}, 422
         
-        return {"Message": "User not logged in"}, 401
+    #     return {"Message": "User not logged in"}, 401
     
 class UserByID(Resource):
 
@@ -122,15 +121,15 @@ class BlogIndex(Resource):
     def post(self):
         user = User.query.filter(User.id == session['user_id']).first()
         json = request.get_json()
-        if session['user_id'] and user.has_blog == False:
-            user.has_blog = True
+        if 'user_id' in session:
             blog = Blog(
                 name = json.get("name"),
                 description = json.get("description"),
-                user_id = session['user_id']
             )
+            blog.users.primary_owner = json.get("primary_owner")
+            blog.users.co_owner = json.get("co_owner")
             
-            if blog and len(blog.description) <= 150:
+            if blog and len(blog.description) <= 250:
                 db.session.add_all(blog)
                 db.session.commit()
                 return blog.to_dict(), 201
@@ -182,9 +181,8 @@ class PostIndex(Resource):
         return Post.query.all().to_dict(), 200
         
     def post(self):
-        user = User.query.filter(User.id == session['user_id']).first()
         json = request.get_json()
-        if session['user_id'] and user.has_blog == True:
+        if 'user_id' in session:
             post = Post(
                 title = json.get("title"),
                 description = json.get("description"),
@@ -203,9 +201,8 @@ class PostIndex(Resource):
 class PostByID(Resource):
 
     def get(self, id):
-        if session["user_id"]:
-            post = Post.query.filter(Post.id == id).first().to_dict()
-            return make_response(jsonify(post), 200)
+        post = Post.query.filter(Post.id == id).first().to_dict()
+        return make_response(jsonify(post), 200)
         
     def patch(self, id):
         json = request.get_json()
@@ -240,14 +237,14 @@ class PostByID(Resource):
 
 class FavoriteIndex(Resource):
     def get(self):
-        if session['user_id']:
+        if 'user_id' in session:
            return Favorite.query.filter(Favorite.user_id == session['user_id']).all().to_dict(), 200
         
         return {"Message": "User not logged in"}, 401
     
     def post(self):
         json = request.get_json()
-        if session['user_id']:
+        if 'user_id' in session:
             favorite = Favorite(
                 favorite_blog_id = json.get("favorite_blog_id"),
                 user_id = session['user_id']
