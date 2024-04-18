@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-function LoginForm({ setUser }) {
+function LoginForm({ setUser, setSubmitted }) {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [isLoading, setIsLoading] = useState(false);
@@ -17,6 +17,7 @@ function LoginForm({ setUser }) {
         }).then((r) => {
             setIsLoading(false);
             if (r.ok) {
+                setSubmitted(true);
                 r.json().then((user) => setUser(user));
             }
         });
@@ -38,7 +39,7 @@ function LoginForm({ setUser }) {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
             />
-            <button type="submit">
+            &nbsp;<button type="submit">
                 {isLoading ? "Loading..." : "Login"}
             </button>
 

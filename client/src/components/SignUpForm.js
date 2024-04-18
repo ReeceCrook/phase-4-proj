@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 
-function SignUpForm() {
+function SignUpForm({ setSubmitted }) {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [imageUrl, setImageUrl] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
 
     function handleSubmit(e) {
         e.preventDefault();
@@ -18,7 +19,9 @@ function SignUpForm() {
                 image_url: imageUrl,
             }),
         }).then((r) => {
-            console.log(r)
+            if (r.ok) {
+                setSubmitted(true);
+            }
         });
     }
 
@@ -47,7 +50,7 @@ function SignUpForm() {
                 value={imageUrl}
                 onChange={(e) => setImageUrl(e.target.value)}
             />
-            <button type="submit">Sign Up</button>
+            &nbsp;<button type="submit">{isLoading ? "Loading..." : "Sign Up"}</button>
         </form>
     );
 }

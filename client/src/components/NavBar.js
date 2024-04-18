@@ -5,35 +5,36 @@ import "../css/NavBar.css"
 function NavBar() {
 
 
+
     return (
         <div className='NavWrapper'>
-            <NavLink
+            &nbsp;<NavLink
                 to="/"
                 activeclassname="active"
                 exact="true"
             >
                 Home
             </NavLink>
-            <NavLink
-                to="/sign-up"
-                exact="true"
-                activeclassname="active"
-            >
-                Sign Up
-            </NavLink>
-            <NavLink
+            &nbsp;<NavLink
                 to="/login"
                 exact="true"
                 activeclassname="active"
             >
                 Login
             </NavLink>
-            <NavLink
-                to="/check"
+            &nbsp;<NavLink
+                to="/posts"
                 exact="true"
                 activeclassname="active"
             >
-                Check Session
+                Posts
+            </NavLink>
+            &nbsp;<NavLink
+                to="/new-post"
+                exact="true"
+                activeclassname="active"
+            >
+                New Post
             </NavLink>
         </div>
     );

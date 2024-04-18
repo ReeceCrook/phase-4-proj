@@ -178,7 +178,7 @@ class BlogByID(Resource):
 
 class PostIndex(Resource):
     def get(self):
-        return Post.query.all().to_dict(), 200
+        return [post.to_dict() for post in Post.query.all()], 200
         
     def post(self):
         json = request.get_json()
