@@ -10,7 +10,7 @@ function Home({ user }) {
             method: "DELETE",
         }).then((r) => {
             console.log(r)
-            setTrigger((current) => !current)
+            setTrigger((current) => !current);
         });
     }
 

@@ -4,9 +4,12 @@ function NewPost() {
     const [title, setTitle] = useState("")
     const [description, setDescription] = useState("")
     const [content, setContent] = useState("")
+    const [isLoading, setIsLoading] = useState(false);
+
 
     function handleSubmit(e) {
         e.preventDefault();
+        setIsLoading(true)
         fetch("/post", {
             method: "POST",
             headers: {
@@ -17,13 +20,16 @@ function NewPost() {
                 description,
                 content: content,
             }),
+        }).then((r) => {
+            setIsLoading(false)
+            console.log(r)
         })
     }
 
     return (
         <div>
             <h2>Create Post</h2>
-            <form>
+            <form onSubmit={handleSubmit}>
                 <label htmlFor="title">Title</label>
                 <input
                     type="text"
@@ -45,12 +51,13 @@ function NewPost() {
                     id="content"
                     rows="10"
                     cols="50"
-                    value={title}
+                    value={content}
                     onChange={(e) => setContent(e.target.value)}
                 >
                 </textarea>
+                <button type="submit">{isLoading ? "Loading..." : "Submit Post"}</button>
             </form>
-            <button type="submit" onSubmit={handleSubmit}>Submit Post</button>
+
         </div>
     )
 }

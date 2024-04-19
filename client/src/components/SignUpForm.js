@@ -8,6 +8,7 @@ function SignUpForm({ setSubmitted }) {
 
     function handleSubmit(e) {
         e.preventDefault();
+        setIsLoading(true)
         fetch("/signup", {
             method: "POST",
             headers: {
@@ -19,6 +20,7 @@ function SignUpForm({ setSubmitted }) {
                 image_url: imageUrl,
             }),
         }).then((r) => {
+            setIsLoading(false)
             if (r.ok) {
                 setSubmitted(true);
             }
