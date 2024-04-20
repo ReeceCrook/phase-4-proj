@@ -1,10 +1,11 @@
 import { useState } from "react";
 
-function NewPost() {
+function NewPost({ user }) {
     const [title, setTitle] = useState("")
     const [description, setDescription] = useState("")
     const [content, setContent] = useState("")
     const [isLoading, setIsLoading] = useState(false);
+    const [errors, setErrors] = useState([]);
 
 
     function handleSubmit(e) {
@@ -22,7 +23,11 @@ function NewPost() {
             }),
         }).then((r) => {
             setIsLoading(false)
-            console.log(r)
+            if (r.ok) {
+                console.log(r);
+            } else {
+                r.json().then((err) => setErrors(err.Message));
+            }
         })
     }
 
@@ -57,7 +62,7 @@ function NewPost() {
                 </textarea>
                 <button type="submit">{isLoading ? "Loading..." : "Submit Post"}</button>
             </form>
-
+            <div>{errors}</div>
         </div>
     )
 }

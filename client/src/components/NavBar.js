@@ -2,8 +2,7 @@ import React from "react";
 import { NavLink } from "react-router-dom";
 import "../css/NavBar.css"
 
-function NavBar() {
-
+function NavBar({ user }) {
 
 
     return (
@@ -30,12 +29,27 @@ function NavBar() {
                 Posts
             </NavLink>
             &nbsp;<NavLink
-                to="/new-post"
+                to="/blogs"
                 exact="true"
                 activeclassname="active"
             >
-                New Post
+                Blogs
             </NavLink>
+            &nbsp;<NavLink
+                to="/profile"
+                exact="true"
+                activeclassname="active"
+            >
+                Profile
+            </NavLink>
+            {user ? <div>
+                &nbsp;<NavLink
+                    to="/favorites"
+                    exact="true"
+                    activeclassname="active"
+                >
+                    My Favorites
+                </NavLink> </div> : ""}
         </div>
     );
 }

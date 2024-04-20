@@ -11,6 +11,7 @@ function Login({ setUser }) {
     useEffect(() => {
         if (submitted) {
             navigate("/");
+            window.location.reload();
         }
 
     }, [submitted])

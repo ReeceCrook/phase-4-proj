@@ -298,10 +298,9 @@ class FavoriteByUserID(Resource):
     
     def delete(self, id):
         if 'user_id' in session and session['user_id'] != None:
-            favorite = db.session.query(favorites).filter_by(user_id=session['user_id']).filter_by(blog_id=id).first()
+            favorite = db.session.query(favorites).filter_by(user_id=session['user_id']).filter_by(blog_id=id).delete()
 
             if favorite:
-                db.session.query(favorites).delete(favorite)
                 db.session.commit()
                 return "Deleted", 204
             else:

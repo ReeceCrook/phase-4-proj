@@ -29,9 +29,9 @@ function PostList() {
                 )
             }) :
                 <div>
-                    <h2>No Recipes Found</h2>
+                    <h2>No Posts Found</h2>
                     <button as={Link} to="/new-post">
-                        Make a New Recipe
+                        Make a New Post
                     </button>
                 </div>
             }
