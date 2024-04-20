@@ -2,7 +2,7 @@ from flask import request, session, make_response, jsonify
 from flask_restful import Resource
 
 from config import app, db, api
-from models import User, Blog, Post, Favorite
+from models import User, Blog, Post, favorites
 
 class Signup(Resource):
     def post(self):
@@ -55,7 +55,7 @@ class Logout(Resource):
     
 class UserIndex(Resource):
     def get(self):
-        return User.query.all().to_dict(), 200
+        return [user.to_dict() for user in User.query.all()], 200
     
     # def post(self):
     #     json = request.get_json()
@@ -114,14 +114,17 @@ class UserByID(Resource):
             return response
         return {"Message": "User not logged in"}, 401
 
+class UserByBlogID(Resource):
+    def get(self, id):
+        return [user.to_dict() for user in User.query.filter(User.blogs.id == id).all()], 200
+
 class BlogIndex(Resource):
     def get(self):
-        return Blog.query.all().to_dict(), 200
+        return [blog.to_dict() for blog in Blog.query.all()], 200
         
     def post(self):
-        user = User.query.filter(User.id == session['user_id']).first()
         json = request.get_json()
-        if 'user_id' in session:
+        if 'user_id' in session and session['user_id'] != None:
             blog = Blog(
                 name = json.get("name"),
                 description = json.get("description"),
@@ -176,19 +179,24 @@ class BlogByID(Resource):
 
         return response
 
+class BlogByUserID(Resource):
+    def get(self, id):
+        return [blog.to_dict() for blog in Blog.query.filter(Blog.users.id == id).all()], 200
+
 class PostIndex(Resource):
     def get(self):
         return [post.to_dict() for post in Post.query.all()], 200
         
     def post(self):
         json = request.get_json()
-        if 'user_id' in session:
+        if 'user_id' in session and session['user_id'] != None:
+            user = User.query.filter(User.id == session['user_id']).first()
             post = Post(
                 title = json.get("title"),
                 description = json.get("description"),
                 content = json.get("content"),
             )
-            
+
             if post and len(post.description) <= 150:
                 db.session.add(post)
                 db.session.commit()
@@ -234,23 +242,29 @@ class PostByID(Resource):
         )
 
         return response
+    
+class PostByBlogID(Resource):
+    def get(self, id):
+        return [post.to_dict() for post in Post.query.filter(Post.blog_id == id).all()], 200
 
 class FavoriteIndex(Resource):
     def get(self):
-        if 'user_id' in session:
-           return Favorite.query.filter(Favorite.user_id == session['user_id']).all().to_dict(), 200
-        
+        if 'user_id' in session and session['user_id'] != None:
+            favorite_list = db.session.query(favorites).filter_by(user_id=session['user_id']).all()
+            favorites_data = [{'user_id': fav.user_id, 'blog_id': fav.blog_id} for fav in favorite_list]
+            return  [fav for fav in favorites_data], 200
+            
         return {"Message": "User not logged in"}, 401
     
     def post(self):
         json = request.get_json()
-        if 'user_id' in session:
-            favorite = Favorite(
-                favorite_blog_id = json.get("favorite_blog_id"),
+        if 'user_id' in session and session['user_id'] != None:
+            favorite = favorites(
+                blog_id = json.get("blog_id"),
                 user_id = session['user_id']
             )
             
-            if favorite and favorite.favorite_blog_id == int:
+            if favorite:
                 db.session.add(favorite)
                 db.session.commit()
                 return favorite.to_dict(), 201
@@ -259,16 +273,16 @@ class FavoriteIndex(Resource):
         
         return {"Message": "User not logged in"}, 401
 
-class FavoriteByID(Resource):
+class FavoriteByUserID(Resource):
 
     def get(self, id):
-        if session["user_id"]:
-            favorites = Favorite.query.filter(Favorite.id == id).all().to_dict()
-            return make_response(jsonify(favorites), 200)
+        if 'user_id' in session and session['user_id'] != None:
+            favorite = db.query(favorites).filter(favorites.c.user_id == id).all().to_dict()
+            return make_response(jsonify(favorite), 200)
         
     def patch(self, id):
         json = request.get_json()
-        favorite = Favorite.query.filter(Favorite.id == id).first()
+        favorite = favorites.query.filter(favorites.id == id).first()
         for attr in json:
             setattr(favorite, attr, json[attr])
         
@@ -283,20 +297,17 @@ class FavoriteByID(Resource):
         return response
     
     def delete(self, id):
+        if 'user_id' in session and session['user_id'] != None:
+            favorite = db.session.query(favorites).filter_by(user_id=session['user_id']).filter_by(blog_id=id).first()
 
-        favorite = Favorite.query.filter(Favorite.id == id).first()
-
-        db.session.delete(favorite)
-        db.session.commit()
-
-
-        response = make_response(
-            "Deleted",
-            204
-        )
-
-        return response
-
+            if favorite:
+                db.session.query(favorites).delete(favorite)
+                db.session.commit()
+                return "Deleted", 204
+            else:
+                return "Favorite not found", 404
+            
+        return "User not logged in", 401
 
 
 api.add_resource(Signup, '/signup', endpoint='signup')
@@ -309,12 +320,14 @@ api.add_resource(UserByID, '/user/<int:id>')
 
 api.add_resource(BlogIndex, '/blog', endpoint='blog')
 api.add_resource(BlogByID, '/blog/<int:id>')
+api.add_resource(BlogByUserID, '/blog-by-user/<int:id>')
 
 api.add_resource(PostIndex, '/post', endpoint='post')
 api.add_resource(PostByID, '/post/<int:id>')
+api.add_resource(PostByBlogID, '/post-by-blog/<int:id>')
 
 api.add_resource(FavoriteIndex, '/favorite', endpoint='favorite')
-api.add_resource(FavoriteByID, '/favorite/<int:id>')
+api.add_resource(FavoriteByUserID, '/favorite/<int:id>')
 
 if __name__ == '__main__':
     app.run(port=5555, debug=True)
