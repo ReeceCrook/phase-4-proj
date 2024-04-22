@@ -9,6 +9,7 @@ import NewPost from './NewPost';
 import UserProfie from './UserProfile';
 import BlogList from './BlogList';
 import FavoriteList from './FavoriteList';
+import NewBlog from './NewBlog';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -27,10 +28,11 @@ function App() {
       <NavBar user={user} />
       <Routes>
         <Route exact path="/" element={<Home user={user} />} />
-        <Route exact path="/login" element={<Login setUser={setUser} />} />
+        <Route exact path="/login" element={<Login setUser={setUser} user={user} />} />
         <Route exact path="/posts" element={<PostList />} />
-        <Route exact path="/blogs" element={<BlogList />} />
         <Route exact path="/new-post" element={<NewPost user={user} />} />
+        <Route exact path="/blogs" element={<BlogList />} />
+        <Route exact path="/new-blog" element={<NewBlog user={user} />} />
         <Route exact path="/profile" element={<UserProfie user={user} />} />
         <Route exact path="/favorites" element={<FavoriteList user={user} />} />
       </Routes>

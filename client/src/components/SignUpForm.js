@@ -3,7 +3,6 @@ import React, { useState } from "react";
 function SignUpForm({ setSubmitted }) {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
-    const [imageUrl, setImageUrl] = useState("");
     const [isLoading, setIsLoading] = useState(false);
 
     function handleSubmit(e) {
@@ -17,7 +16,6 @@ function SignUpForm({ setSubmitted }) {
             body: JSON.stringify({
                 username,
                 password,
-                image_url: imageUrl,
             }),
         }).then((r) => {
             setIsLoading(false)
@@ -44,13 +42,6 @@ function SignUpForm({ setSubmitted }) {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 autoComplete="current-password"
-            />
-            <label htmlFor="imageUrl">Profile Image</label>
-            <input
-                type="text"
-                id="imageUrl"
-                value={imageUrl}
-                onChange={(e) => setImageUrl(e.target.value)}
             />
             &nbsp;<button type="submit">{isLoading ? "Loading..." : "Sign Up"}</button>
         </form>

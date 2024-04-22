@@ -38,7 +38,6 @@ function FavoriteList({ user }) {
     return (
         <div>
             {favorites.length > 0 ? favorites.map((favorite) => {
-                console.log(favorite.id)
                 return (
                     <div key={favorite.id}>
                         <h2>Title: {favorite.name}</h2>

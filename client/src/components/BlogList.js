@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 function BlogList() {
     const [blogs, setBlogs] = useState([])
+    const nav = useNavigate()
 
     useEffect(() => {
         fetch("/blog")
@@ -11,6 +13,7 @@ function BlogList() {
     return (
         <div>
             {blogs.length > 0 ? blogs.map((blog) => {
+                console.log(blog.owner)
                 return (
                     <div key={blog.id}>
                         <h2>Title: {blog.name}</h2>
@@ -21,21 +24,26 @@ function BlogList() {
                             Date Created:<br />
                             {blog.date_created}
                         </p>
-                        This post was created by: {blog.users.map((user) => {
-                            return (
-                                <div key={user.id}>
-                                    <h3>{user.username}</h3>
-                                </div>
-                            )
-                        })}
+                        This blog was created by: {blog.users.length > 0 ? (
+                            blog.users.map((user) => {
+                                return (
+                                    <li key={user.id}>
+                                        <h3>{user.username}</h3>
+                                    </li>
+                                )
+                            })
+                        ) : (
+                            <div>OWNER: {blog.owner}</div>
+                        )}
+
                     </div>
                 )
             }) :
                 <div>
                     <h2>No Blogs Found</h2>
-                    {/* <button as={Link} to="/new-blog">
-                        Start a Blog
-                    </button> */}
+                    <button onClick={() => nav("/new-blog")}>
+                        Create a Blog
+                    </button>
                 </div>
             }
         </div>

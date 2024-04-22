@@ -1,15 +1,15 @@
 from flask import request, session, make_response, jsonify
 from flask_restful import Resource
+from werkzeug.utils import secure_filename
 
 from config import app, db, api
-from models import User, Blog, Post, favorites
+from models import User, Blog, Post, favorites, shared_blog
 
 class Signup(Resource):
     def post(self):
         json = request.get_json()
         user = User(
             username=json.get('username'),
-            image_url=json.get('image_url'),
         )
         user.password_hash = json.get('password')
         if user and user.username:
@@ -120,22 +120,51 @@ class UserByBlogID(Resource):
 
 class BlogIndex(Resource):
     def get(self):
+        print([blog.owner for blog in Blog.query.all()])
         return [blog.to_dict() for blog in Blog.query.all()], 200
         
     def post(self):
         json = request.get_json()
         if 'user_id' in session and session['user_id'] != None:
-            blog = Blog(
-                name = json.get("name"),
-                description = json.get("description"),
-            )
-            blog.users.primary_owner = json.get("primary_owner")
-            blog.users.co_owner = json.get("co_owner")
+            user_id = session['user_id']
+            name = json.get("name")
+            description = json.get("description")
+            is_shared = json.get("is_shared") 
+
+            owner = User.query.filter(User.id == user_id).first()
+            blog = Blog(name=name, description=description, owner=owner, owner_id=owner.id)
+            db.session.add(blog)
+            db.session.commit()
+
+            print("OWNER", blog.owner)
+            if is_shared:
+                co_owner_id = json.get("co_owner_id")
+                co_owner = User.query.filter(User.id == co_owner_id).first()
+
+                print("Owner:", owner.username)
+                print("Blog ID:", blog.id)
+                print("Co-Owner:", co_owner.username)
+
+                try:
+                    shared_blog_entry = shared_blog.insert().values(
+                        user_id=co_owner_id,
+                        blog_id=blog.id,
+                        primary_owner=owner.username,
+                        co_owner=co_owner.username
+                    )
+                    db.session.execute(shared_blog_entry)
+                    db.session.commit()
+                    return blog.to_dict(), 201
+                except Exception as e:
+                    db.session.rollback()
+                    print("Error:", e)
+
             
-            if blog and len(blog.description) <= 250:
-                db.session.add_all(blog)
-                db.session.commit()
-                return blog.to_dict(), 201
+            ## Will validate everything after testing phase
+            # if blog and len(blog.description) <= 250:
+            #     db.session.add(blog)
+            #     db.session.commit()
+            #     return blog.to_dict(), 201
             
             return {"Message": "One or more fields are invalid"}, 422
         
@@ -181,7 +210,15 @@ class BlogByID(Resource):
 
 class BlogByUserID(Resource):
     def get(self, id):
-        return [blog.to_dict() for blog in Blog.query.filter(Blog.users.id == id).all()], 200
+        if 'user_id' in session and session['user_id'] != None:
+            user = User.query.filter(User.id == id).first()
+            if user:
+                return [blog.to_dict() for blog in Blog.query.filter(Blog.users.contains(user)).all()], 200
+            else:
+                return {'message': 'User not found'}, 404
+        
+        return {'message': 'User not logged in'}, 401
+
 
 class PostIndex(Resource):
     def get(self):
@@ -195,6 +232,7 @@ class PostIndex(Resource):
                 title = json.get("title"),
                 description = json.get("description"),
                 content = json.get("content"),
+                blog_id = json.get("blog_id")
             )
 
             if post and len(post.description) <= 150:
@@ -251,8 +289,8 @@ class FavoriteIndex(Resource):
     def get(self):
         if 'user_id' in session and session['user_id'] != None:
             favorite_list = db.session.query(favorites).filter_by(user_id=session['user_id']).all()
-            favorites_data = [{'user_id': fav.user_id, 'blog_id': fav.blog_id} for fav in favorite_list]
-            return  [fav for fav in favorites_data], 200
+            favorites_json = [{'user_id': fav.user_id, 'blog_id': fav.blog_id} for fav in favorite_list]
+            return  [fav for fav in favorites_json], 200
             
         return {"Message": "User not logged in"}, 401
     
@@ -307,7 +345,7 @@ class FavoriteByUserID(Resource):
                 return "Favorite not found", 404
             
         return "User not logged in", 401
-
+    
 
 api.add_resource(Signup, '/signup', endpoint='signup')
 api.add_resource(CheckSession, '/check_session', endpoint='check_session')
