@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import "../css/BlogList.css"
 
 function BlogList() {
     const [blogs, setBlogs] = useState([])
@@ -10,30 +11,54 @@ function BlogList() {
             .then((r) => r.json())
             .then(setBlogs);
     }, []);
+
+    function favoriteBlog(id) {
+        fetch("/favorite", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                blog_id: id
+            }),
+        }).then((r) => {
+            if (r.ok) {
+                console.log(r);
+                window.location.reload();
+            } else {
+                console.log(r);
+            }
+        });
+    }
+
     return (
-        <div>
+        <div className="blogs-wrapper">
             {blogs.length > 0 ? blogs.map((blog) => {
-                console.log(blog.owner)
                 return (
-                    <div key={blog.id}>
-                        <h2>Title: {blog.name}</h2>
+                    <div key={blog.id} className="blogs">
+                        <button onClick={() => favoriteBlog(blog.id)}>Favorite This Blog</button>
+                        <button onClick={() => nav(`/blogs/${blog.id}`)}>View this Blogs Posts</button>
+                        <h2><strong>Title:</strong> {blog.name}</h2>
                         <p>
-                            Description:<br />
+                            <strong>Description:</strong><br />
                             {blog.description}<br />
 
-                            Date Created:<br />
+                            <strong>Date Created:</strong><br />
                             {blog.date_created}
                         </p>
-                        This blog was created by: {blog.users.length > 0 ? (
-                            blog.users.map((user) => {
-                                return (
-                                    <li key={user.id}>
-                                        <h3>{user.username}</h3>
-                                    </li>
-                                )
-                            })
+                        {blog.users.length > 0 ? (
+                            <div>
+                                <h3><strong>This blog was created by:</strong></h3>
+                                {blog.users.map((user) => {
+                                    return (
+                                        <li key={user.id}>
+                                            <h4>{user.username}</h4>
+                                        </li>
+                                    )
+                                })}
+                            </div>
                         ) : (
-                            <div>OWNER: {blog.owner}</div>
+                            <div><strong>Owner:</strong> {blog.owner.username}</div>
                         )}
 
                     </div>

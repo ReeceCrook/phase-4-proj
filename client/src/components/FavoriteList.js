@@ -5,11 +5,9 @@ import { Link } from "react-router-dom";
 
 function FavoriteList({ user }) {
     const [favorites, setFavorites] = useState([])
-    const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
         if (user) {
-            setIsLoading(true);
             Promise.all(user.favorite_blogs.map((blog) =>
                 fetch(`/blog/${blog.id}`)
                     .then((r) => {
@@ -21,7 +19,6 @@ function FavoriteList({ user }) {
                     })
             )).then((responses) => {
                 setFavorites(responses.flat());
-                setIsLoading(false);
             })
         }
     }, [user]);
@@ -30,7 +27,6 @@ function FavoriteList({ user }) {
         fetch(`/favorite/${id}`, {
             method: "DELETE",
         }).then((r) => {
-            console.log(r)
             window.location.reload();
         });
     }

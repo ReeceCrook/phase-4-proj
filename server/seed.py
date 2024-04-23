@@ -13,11 +13,17 @@ with app.app_context():
     db.session.commit()
 
     new_users = []
+    admin_user = User(username='admin')
+    admin_user.password_hash='qwe'
+    new_users.append(admin_user)
     for _ in range(20):
         username = fake.user_name()
         password = fake.password()
-        new_user = User(username=username, _password_hash=password)
+        new_user = User(username=username)
+        new_user.password_hash = password
         new_users.append(new_user)
+    
+    
 
     db.session.add_all(new_users)
     db.session.commit()

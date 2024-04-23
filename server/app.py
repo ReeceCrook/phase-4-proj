@@ -82,21 +82,25 @@ class UserByID(Resource):
         return make_response(jsonify(user), 200)
     
     def patch(self, id):
-        json = request.get_json()
+        if session['user_id'] == id:
+            json = request.get_json()
 
-        user = User.query.filter(User.id == id).first()
-        for attr in json:
-            setattr(user, attr, json[attr])
-        
-        db.session.add(user)
-        db.session.commit()
+            user = User.query.filter(User.id == id).first()
+            for attr, value in json.items():
+                if attr == 'password':
+                    user.password_hash = value
+                else:
+                    setattr(user, attr, value)
+            
+            db.session.add(user)
+            db.session.commit()
 
-        response = make_response(
-            user.to_dict(),
-            200
-        )
+            response = make_response(
+                user.to_dict(),
+                200
+            )
 
-        return response
+            return response
     
     def delete(self, id):
         if session['user_id'] == id:
@@ -105,7 +109,7 @@ class UserByID(Resource):
             db.session.delete(user)
             db.session.commit()
 
-
+            session['user_id'] = None
             response = make_response(
                 "Deleted",
                 204
@@ -120,7 +124,6 @@ class UserByBlogID(Resource):
 
 class BlogIndex(Resource):
     def get(self):
-        print([blog.owner for blog in Blog.query.all()])
         return [blog.to_dict() for blog in Blog.query.all()], 200
         
     def post(self):
@@ -161,10 +164,10 @@ class BlogIndex(Resource):
 
             
             ## Will validate everything after testing phase
-            # if blog and len(blog.description) <= 250:
-            #     db.session.add(blog)
-            #     db.session.commit()
-            #     return blog.to_dict(), 201
+            if blog:
+                db.session.add(blog)
+                db.session.commit()
+                return blog.to_dict(), 201
             
             return {"Message": "One or more fields are invalid"}, 422
         
@@ -174,13 +177,16 @@ class BlogIndex(Resource):
 class BlogByID(Resource):
 
     def get(self, id):
-        blog = Blog.query.filter(Blog.id == id).first().to_dict()
-        return make_response(jsonify(blog), 200)
+        blog = Blog.query.filter(Blog.id == id).first()
+        if blog:
+            return blog.to_dict(), 200
+        
+        return {"Message": "Blog not found"}, 401
     
     def patch(self, id):
         json = request.get_json()
 
-        blog = Blog.query.filter( Blog.id == id).first()
+        blog = Blog.query.filter(Blog.id == id).first()
         for attr in json:
             setattr(blog, attr, json[attr])
         
@@ -213,7 +219,7 @@ class BlogByUserID(Resource):
         if 'user_id' in session and session['user_id'] != None:
             user = User.query.filter(User.id == id).first()
             if user:
-                return [blog.to_dict() for blog in Blog.query.filter(Blog.users.contains(user)).all()], 200
+                return [blog.to_dict() for blog in Blog.query.filter(Blog.users.contains(user)).all() + Blog.query.filter(Blog.owner_id == id).all()], 200
             else:
                 return {'message': 'User not found'}, 404
         
@@ -297,15 +303,21 @@ class FavoriteIndex(Resource):
     def post(self):
         json = request.get_json()
         if 'user_id' in session and session['user_id'] != None:
-            favorite = favorites(
-                blog_id = json.get("blog_id"),
-                user_id = session['user_id']
-            )
             
-            if favorite:
-                db.session.add(favorite)
+            try:
+                blog = Blog.query.filter(Blog.id == json.get("blog_id")).first()
+                favorite_entry = favorites.insert().values(
+                    blog_id=json.get("blog_id"),
+                    user_id=session['user_id']
+                )
+                
+                
+                db.session.execute(favorite_entry)
                 db.session.commit()
-                return favorite.to_dict(), 201
+                return blog.to_dict(), 201
+            except Exception as e:
+                    db.session.rollback()
+                    print("Error:", e)
             
             return {"Message": "One or more fields are invalid"}, 422
         
@@ -318,21 +330,21 @@ class FavoriteByUserID(Resource):
             favorite = db.query(favorites).filter(favorites.c.user_id == id).all().to_dict()
             return make_response(jsonify(favorite), 200)
         
-    def patch(self, id):
-        json = request.get_json()
-        favorite = favorites.query.filter(favorites.id == id).first()
-        for attr in json:
-            setattr(favorite, attr, json[attr])
+    # def patch(self, id):
+    #     json = request.get_json()
+    #     favorite = favorites.query.filter(favorites.id == id).first()
+    #     for attr in json:
+    #         setattr(favorite, attr, json[attr])
         
-        db.session.add(favorite)
-        db.session.commit()
+    #     db.session.add(favorite)
+    #     db.session.commit()
 
-        response = make_response(
-            favorite.to_dict(),
-            200
-        )
+    #     response = make_response(
+    #         favorite.to_dict(),
+    #         200
+    #     )
 
-        return response
+    #     return response
     
     def delete(self, id):
         if 'user_id' in session and session['user_id'] != None:

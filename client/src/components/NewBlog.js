@@ -28,8 +28,9 @@ function NewBlog({ user }) {
             setIsLoading(false);
             if (r.ok) {
                 console.log(r);
+                window.location.reload();
             } else {
-                console.log(r)
+                console.log(r);
             }
         });
     }
@@ -60,7 +61,7 @@ function NewBlog({ user }) {
                 />
                 {isShared ? (
                     <div>
-                        <label htmlFor="coOwnerId">co owner smile</label>
+                        <label htmlFor="coOwnerId">co owner</label>
                         <input
                             type="number"
                             id="coOwnerId"

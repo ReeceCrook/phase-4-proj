@@ -76,6 +76,10 @@ class Blog(db.Model, SerializerMixin):
         return f'ID: {self.id}, Owner ID: {self.owner_id}, Title: {self.name}, Description: {self.description}, Date Created: {self.date_created}'
     
     @hybrid_property
+    def serialized_owner(self):
+        return self.owner.to_dict(rules=('-blogs', '-favorite_blogs'))
+    
+    @hybrid_property
     def serialized_users(self):
         return [user.to_dict(rules=('-blogs', '-favorite_blogs')) for user in self.users]
     
@@ -85,6 +89,7 @@ class Blog(db.Model, SerializerMixin):
     
     def to_dict(self, rules=None):
         data = super().to_dict(rules)
+        data['owner'] = self.serialized_owner
         data['users'] = self.serialized_users
         data['favorited_by'] = self.serialized_favorited_by
         return data
@@ -104,4 +109,4 @@ class Post(db.Model, SerializerMixin):
     blog_id = db.Column(db.Integer, db.ForeignKey('blogs.id'), nullable=False)
 
     def __repr__(self):
-        return f'Title: {self.title}, Description: {self.description}, Author ID: {self.user_id} Date Created: {self.date_created}'
+        return f'Title: {self.title}, Description: {self.description}, Date Created: {self.date_created}'

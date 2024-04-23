@@ -1,6 +1,7 @@
 import React, { useState } from "react";
+import { useFormik } from "formik";
 
-function SignUpForm({ setSubmitted }) {
+function SignUpForm({ setSubmitted, formSchema }) {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [isLoading, setIsLoading] = useState(false);
