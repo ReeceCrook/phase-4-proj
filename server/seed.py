@@ -1,3 +1,4 @@
+import random
 from random import choice
 from faker import Faker
 from app import app
@@ -14,7 +15,7 @@ with app.app_context():
 
     new_users = []
     admin_user = User(username='admin')
-    admin_user.password_hash='qwe'
+    admin_user.password_hash='qweqwe'
     new_users.append(admin_user)
     for _ in range(20):
         username = fake.user_name()
@@ -23,8 +24,6 @@ with app.app_context():
         new_user.password_hash = password
         new_users.append(new_user)
     
-    
-
     db.session.add_all(new_users)
     db.session.commit()
 
@@ -50,19 +49,16 @@ with app.app_context():
     db.session.add_all(new_posts)
     db.session.commit()
 
-
     for user in new_users:
-        if user.id % 2 != 0:
-            blog_to_share = choice(new_blogs)
-            primary_owner = blog_to_share.owner
-            shared_users = [primary_owner] + [u for u in new_users if u != primary_owner and u not in blog_to_share.users]
+        for _ in range(random.randint(1, 2)):
+            name = fake.company()
+            description = fake.catch_phrase()
+            new_blog = Blog(name=name, description=description, owner=user)
+            db.session.add(new_blog)
+            db.session.commit()
+            shared_users = [u for u in new_users if u != user and random.randint(0, 1)]
             for shared_user in shared_users:
-                existing_entry = db.session.query(shared_blog).filter_by(user_id=shared_user.id, blog_id=blog_to_share.id).first()
-                if not existing_entry:
-                    shared_blog_instance = shared_blog.insert().values(user_id=shared_user.id, blog_id=blog_to_share.id, primary_owner=primary_owner.username, co_owner=shared_user.username)
-                    db.session.execute(shared_blog_instance)
-
-        blog_to_favorite = choice(new_blogs)
-        blog_to_favorite.favorited_by.append(user)
+                shared_blog_instance = shared_blog.insert().values(user_id=shared_user.id, blog_id=new_blog.id, primary_owner=user.username, co_owner=shared_user.username)
+                db.session.execute(shared_blog_instance)
 
     db.session.commit()

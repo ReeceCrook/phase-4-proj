@@ -6,50 +6,57 @@ function NavBar({ user }) {
 
 
     return (
-        <div className='NavWrapper'>
-            &nbsp;<NavLink
+        <div className='nav-wrapper'>
+            <NavLink
                 to="/"
-                activeclassname="active"
                 exact="true"
+                className="nav"
+                activeclassname="active"
             >
                 Home
             </NavLink>
-            &nbsp;<NavLink
-                to="/login"
-                exact="true"
-                activeclassname="active"
-            >
-                Login
-            </NavLink>
-            &nbsp;<NavLink
+            <NavLink
                 to="/posts"
                 exact="true"
+                className="nav"
                 activeclassname="active"
             >
                 Posts
             </NavLink>
-            &nbsp;<NavLink
-                to="/blogs"
+            <NavLink
+                to="/new-blog"
                 exact="true"
+                className="nav"
                 activeclassname="active"
             >
-                Blogs
+                Start new Blog
             </NavLink>
-            &nbsp;<NavLink
+
+            <NavLink
+                to="/new-post"
+                exact="true"
+                className="nav"
+                activeclassname="active"
+            >
+                Add new Post
+            </NavLink>
+            <NavLink
                 to="/profile"
                 exact="true"
+                className="nav"
                 activeclassname="active"
             >
                 Profile
             </NavLink>
-            {user ? <div>
-                &nbsp;<NavLink
+            {user ?
+                <NavLink
                     to="/favorites"
                     exact="true"
+                    className="nav"
                     activeclassname="active"
                 >
                     My Favorites
-                </NavLink> </div> : ""}
+                </NavLink> : ""}
         </div>
     );
 }

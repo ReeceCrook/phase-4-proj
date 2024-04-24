@@ -1,5 +1,6 @@
 from sqlalchemy_serializer import SerializerMixin
 from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.orm import validates
 from datetime import datetime
 
 from config import db, bcrypt, metadata
@@ -35,6 +36,14 @@ class User(db.Model, SerializerMixin):
     def __repr__(self):
         return f'User {self.username}, ID: {self.id}, Date Created: {self.date_joined}'
     
+    @validates('username')
+    def validate_username(self, key, username):
+        if not any(char.isalpha() for char in username):
+            raise ValueError("Username must contain at least one letter.")
+        elif len(username) > 25 or len(username) < 3:
+            raise ValueError("Username must be at least 3 characters and at most 25 characters.")
+        return username
+
     @hybrid_property
     def password_hash(self):
         raise AttributeError('Password hashes may not be viewed.')
@@ -110,3 +119,9 @@ class Post(db.Model, SerializerMixin):
 
     def __repr__(self):
         return f'Title: {self.title}, Description: {self.description}, Date Created: {self.date_created}'
+    
+    @validates("content")
+    def validate_content(self, key, content):
+        if len(content) < 20 or len(content) > 4000:
+            return TypeError("Content Cannot be shorter than 20 characters or longer than 4000 characters")
+        return content

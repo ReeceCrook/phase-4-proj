@@ -1,0 +1,17 @@
+.nav {
+    display: inline-block;
+    padding: 3px 8px;
+    margin-right: 8px;
+    background-color: grey;
+    color: white;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+}
+
+.nav:hover {
+    background-color: lightgray;
+    color: white;
+    text-decoration: none;
+}

@@ -40,15 +40,6 @@ function UserProfile({ user }) {
         }
     }, [user]);
 
-    function logout() {
-        fetch("/logout", {
-            method: "DELETE",
-        }).then((r) => {
-            console.log(r)
-            window.location.reload();
-        });
-    }
-
     function getAllBlogs() {
         setIsLoading(true);
         fetch(`/blog-by-user/${user.id}`)
@@ -240,85 +231,83 @@ function UserProfile({ user }) {
 
     return (
         <div className="user-profile-wrapper">
-            <button onClick={logout}>Logout</button>
-            <button onClick={() => handleDeleteProfile()}>Perminently delete this profile?</button>
-            <div className="test">
-                <button onClick={() => setOpenUserNameSettings(true)}>Change username</button>
-                <button onClick={() => setOpenPasswordSettings(true)}>Change password</button>
+            <br />
+            <button onClick={() => handleDeleteProfile()} className="buttons">Perminently delete this profile?</button>
+            <button onClick={() => setOpenUserNameSettings(true)} className="buttons">Change username</button>
+            <button onClick={() => setOpenPasswordSettings(true)} className="buttons">Change password</button>
+            <br /><br />
+            <strong>ID:</strong> {id}<br />
+            <strong>Username:</strong> {username}<br />
 
-                <strong>ID:</strong> {id}<br />
-                <strong>Username:</strong> {username}<br />
+            <strong>Date Joined:</strong> {date_joined}<br /><br />
 
-                <strong>Date Joined:</strong> {date_joined}<br /><br />
+            <div className="tab-buttons">
+                <button onClick={() => setActiveTab('blogs')} className={activeTab === 'blogs' ? 'active' : ''}>Your Personal Blogs</button>
+                <button onClick={() => setActiveTab('shared-blogs')}>All Blogs</button>
+                <button onClick={() => setActiveTab('posts')} className={activeTab === 'posts' ? 'active' : ''}>Your Posts</button>
+                <button onClick={() => nav('/new-blog')}>Create New Blog</button>
+                {postByBlog.length > 0 ? <button onClick={() => setPostByBlog([])}>Return to Blogs</button> : ''}
+                {postByBlog.length > 0 ? <button onClick={() => nav('/new-post')}>Add New Post</button> : ''}
+            </div>
 
-                <div className="tab-buttons">
-                    <button onClick={() => setActiveTab('blogs')} className={activeTab === 'blogs' ? 'active' : ''}>Your Personal Blogs</button>
-                    <button onClick={() => setActiveTab('shared-blogs')}>All Blogs</button>
-                    <button onClick={() => setActiveTab('posts')} className={activeTab === 'posts' ? 'active' : ''}>Your Posts</button>
-                    <button onClick={() => nav('/new-blog')}>Create New Blog</button>
-                    {postByBlog.length > 0 ? <button onClick={() => setPostByBlog([])}>Return to Blogs</button> : ''}
-                    {postByBlog.length > 0 ? <button onClick={() => nav('/new-post')}>Add New Post</button> : ''}
+            {postByBlog.length > 0 && activeTab === '' ? (
+                <div>
+                    {postByBlog.map((post) => (
+                        <div key={post.id} className="user-posts">
+                            <button onClick={() => handleDeletePost(post.id)}>Perminently delete this post?</button>
+                            <h2><strong>Title:</strong><br /> {post.title}</h2>
+                            <p><strong>Date Created:</strong><br /> {post.date_created}</p>
+                            <p><strong>Description:</strong><br /> {post.description}</p>
+                            <p><strong>Content:</strong><br /> {post.content}</p>
+                        </div>
+                    ))}
                 </div>
+            ) : activeTab === 'blogs' ? (
+                <div className="user-blogs-wrapper tab-content">
+                    {blogs.map((blog) => (
+                        <div key={blog.id} className="user-blogs">
+                            <h2><strong>Title:</strong><br /> {blog.name}</h2>
+                            <p><strong>Date Created:</strong><br /> {blog.date_created}</p>
+                            <p><strong>Description:</strong><br /> {blog.description}</p>
+                            <button onClick={() => getPostsByBlog(blog.id)}>View This Blogs Posts</button>
+                            <button onClick={() => handleDeleteBlog(blog.id)}>Perminently delete this blog?</button>
+                        </div>
+                    ))}
+                </div>
+            ) : activeTab === 'shared-blogs' ? (
+                <div className="user-blogs-wrapper tab-content">
+                    {allBlogs.length > 0 ? (
+                        allBlogs.map((blog) => {
+                            return (
+                                <div key={blog.id} className="user-blogs">
+                                    <h2><strong>Title:</strong><br /> {blog.name}</h2>
+                                    <p><strong>Date Created:</strong><br /> {blog.date_created}</p>
+                                    <p><strong>Description:</strong><br /> {blog.description}</p>
+                                    <button onClick={() => getPostsByBlog(blog.id)}>View This Blogs Posts</button>
 
-                {postByBlog.length > 0 && activeTab === '' ? (
-                    <div>
-                        {postByBlog.map((post) => (
+                                    {/* <button onClick={() => handleDeleteBlog(blog.id)}>Perminently delete this blog?</button> */}
+                                </div>
+                            )
+
+                        })
+                    ) : (
+                        <div>No Blogs Found</div>
+                    )}
+                </div>
+            ) : (
+                <div className="user-posts-wrapper tab-content">
+                    {isLoading ? <p>Loading...</p> : (
+                        posts.map((post) => (
                             <div key={post.id} className="user-posts">
-                                <button onClick={() => handleDeletePost(post.id)}>Perminently delete this post?</button>
                                 <h2><strong>Title:</strong><br /> {post.title}</h2>
                                 <p><strong>Date Created:</strong><br /> {post.date_created}</p>
                                 <p><strong>Description:</strong><br /> {post.description}</p>
                                 <p><strong>Content:</strong><br /> {post.content}</p>
                             </div>
-                        ))}
-                    </div>
-                ) : activeTab === 'blogs' ? (
-                    <div className="user-blogs-wrapper tab-content">
-                        {blogs.map((blog) => (
-                            <div key={blog.id} className="user-blogs">
-                                <h2><strong>Title:</strong><br /> {blog.name}</h2>
-                                <p><strong>Date Created:</strong><br /> {blog.date_created}</p>
-                                <p><strong>Description:</strong><br /> {blog.description}</p>
-                                <button onClick={() => getPostsByBlog(blog.id)}>View This Blogs Posts</button>
-                                <button onClick={() => handleDeleteBlog(blog.id)}>Perminently delete this blog?</button>
-                            </div>
-                        ))}
-                    </div>
-                ) : activeTab === 'shared-blogs' ? (
-                    <div className="user-blogs-wrapper tab-content">
-                        {allBlogs.length > 0 ? (
-                            allBlogs.map((blog) => {
-                                return (
-                                    <div key={blog.id} className="user-blogs">
-                                        <h2><strong>Title:</strong><br /> {blog.name}</h2>
-                                        <p><strong>Date Created:</strong><br /> {blog.date_created}</p>
-                                        <p><strong>Description:</strong><br /> {blog.description}</p>
-                                        <button onClick={() => getPostsByBlog(blog.id)}>View This Blogs Posts</button>
-
-                                        {/* <button onClick={() => handleDeleteBlog(blog.id)}>Perminently delete this blog?</button> */}
-                                    </div>
-                                )
-
-                            })
-                        ) : (
-                            <div>No Blogs Found</div>
-                        )}
-                    </div>
-                ) : (
-                    <div className="user-posts-wrapper tab-content">
-                        {isLoading ? <p>Loading...</p> : (
-                            posts.map((post) => (
-                                <div key={post.id} className="user-posts">
-                                    <h2><strong>Title:</strong><br /> {post.title}</h2>
-                                    <p><strong>Date Created:</strong><br /> {post.date_created}</p>
-                                    <p><strong>Description:</strong><br /> {post.description}</p>
-                                    <p><strong>Content:</strong><br /> {post.content}</p>
-                                </div>
-                            ))
-                        )}
-                    </div>
-                )}
-            </div>
+                        ))
+                    )}
+                </div>
+            )}
             {
                 errors.length > 0 && errors.map((error, index) => (
                     <p key={index} style={{ color: 'red' }}>{error}</p>

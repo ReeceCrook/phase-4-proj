@@ -4,12 +4,16 @@ import "../css/BlogList.css"
 
 function BlogList() {
     const [blogs, setBlogs] = useState([])
+    const [isLoading, setIsLoading] = useState(true);
     const nav = useNavigate()
 
     useEffect(() => {
         fetch("/blog")
             .then((r) => r.json())
-            .then(setBlogs);
+            .then((r) => {
+                setBlogs(r)
+                setIsLoading(false)
+            });
     }, []);
 
     function favoriteBlog(id) {
@@ -33,11 +37,11 @@ function BlogList() {
 
     return (
         <div className="blogs-wrapper">
-            {blogs.length > 0 ? blogs.map((blog) => {
+            {isLoading ? <h1 style={{ position: "absolute", top: "30%", left: "45%" }}>Loading Blogs...</h1> : blogs.length > 0 ? blogs.map((blog) => {
                 return (
-                    <div key={blog.id} className="blogs">
-                        <button onClick={() => favoriteBlog(blog.id)}>Favorite This Blog</button>
-                        <button onClick={() => nav(`/blogs/${blog.id}`)}>View this Blogs Posts</button>
+                    <div key={blog.id} className="blogs" name={blog.name}>
+                        <button onClick={() => favoriteBlog(blog.id)} style={{ float: "left" }}>Favorite This Blog</button>
+                        <button onClick={() => nav(`/blogs/${blog.id}`)} style={{ float: "right" }}>View this Blogs Posts</button>
                         <h2><strong>Title:</strong> {blog.name}</h2>
                         <p>
                             <strong>Description:</strong><br />
@@ -49,6 +53,7 @@ function BlogList() {
                         {blog.users.length > 0 ? (
                             <div>
                                 <h3><strong>This blog was created by:</strong></h3>
+                                <li>{blog.owner.username}</li>
                                 {blog.users.map((user) => {
                                     return (
                                         <li key={user.id}>

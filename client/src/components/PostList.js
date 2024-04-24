@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import "../css/PostList.css"
 
 function PostList() {
     const [posts, setPosts] = useState([])
@@ -11,12 +12,12 @@ function PostList() {
     }, []);
 
     return (
-        <div>
+        <div className="posts-wrapper">
             {posts.length > 0 ? posts.map((post) => {
                 return (
-                    <div key={post.id}>
-                        <h2>Title: {post.title}</h2>
-                        <p>
+                    <div key={post.id} className="posts">
+                        <h2>Title: <br /> {post.title}</h2>
+                        <p >
                             Description:<br></br>
                             {post.description}
 

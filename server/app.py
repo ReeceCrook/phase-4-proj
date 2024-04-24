@@ -132,23 +132,29 @@ class BlogIndex(Resource):
             user_id = session['user_id']
             name = json.get("name")
             description = json.get("description")
-            is_shared = json.get("is_shared") 
+            is_shared = json.get("isShared") 
 
             owner = User.query.filter(User.id == user_id).first()
+            if owner is None:
+                return {"message": "User not found"}, 404
+            
             blog = Blog(name=name, description=description, owner=owner, owner_id=owner.id)
             db.session.add(blog)
-            db.session.commit()
 
             print("OWNER", blog.owner)
             if is_shared:
-                co_owner_id = json.get("co_owner_id")
-                co_owner = User.query.filter(User.id == co_owner_id).first()
-
-                print("Owner:", owner.username)
-                print("Blog ID:", blog.id)
-                print("Co-Owner:", co_owner.username)
-
                 try:
+                    co_owner_id = json.get("coOwnerId")
+                    co_owner = User.query.filter(User.id == co_owner_id).first()
+
+
+                    if co_owner is None:
+                        return {"message": "Co-owner not found"}, 404
+
+                    print("Owner:", owner.username)
+                    print("Blog ID:", blog.id)
+                    print("Co-Owner:", co_owner.username)
+
                     shared_blog_entry = shared_blog.insert().values(
                         user_id=co_owner_id,
                         blog_id=blog.id,
@@ -159,13 +165,13 @@ class BlogIndex(Resource):
                     db.session.commit()
                     return blog.to_dict(), 201
                 except Exception as e:
-                    db.session.rollback()
                     print("Error:", e)
+                    import traceback
+                    traceback.print_exc()
+                    db.session.rollback()
+                    return {"message": "Failed to create shared blog"}, 500
 
-            
-            ## Will validate everything after testing phase
             if blog:
-                db.session.add(blog)
                 db.session.commit()
                 return blog.to_dict(), 201
             
@@ -330,22 +336,6 @@ class FavoriteByUserID(Resource):
             favorite = db.query(favorites).filter(favorites.c.user_id == id).all().to_dict()
             return make_response(jsonify(favorite), 200)
         
-    # def patch(self, id):
-    #     json = request.get_json()
-    #     favorite = favorites.query.filter(favorites.id == id).first()
-    #     for attr in json:
-    #         setattr(favorite, attr, json[attr])
-        
-    #     db.session.add(favorite)
-    #     db.session.commit()
-
-    #     response = make_response(
-    #         favorite.to_dict(),
-    #         200
-    #     )
-
-    #     return response
-    
     def delete(self, id):
         if 'user_id' in session and session['user_id'] != None:
             favorite = db.session.query(favorites).filter_by(user_id=session['user_id']).filter_by(blog_id=id).delete()

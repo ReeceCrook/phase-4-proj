@@ -57,7 +57,7 @@ function FavoriteList({ user }) {
             }) :
                 <div>
                     <h2>No favorites Found</h2>
-                    <Link to="/blogs">
+                    <Link to="/">
                         Browse Blogs
                     </Link>
                 </div>
