@@ -8,6 +8,7 @@ function FavoriteList({ user }) {
 
     useEffect(() => {
         if (user) {
+
             Promise.all(user.favorite_blogs.map((blog) =>
                 fetch(`/blog/${blog.id}`)
                     .then((r) => {
@@ -19,6 +20,7 @@ function FavoriteList({ user }) {
                     })
             )).then((responses) => {
                 setFavorites(responses.flat());
+
             })
         }
     }, [user]);

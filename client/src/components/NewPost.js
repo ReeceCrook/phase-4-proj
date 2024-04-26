@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useFormik } from "formik";
 import * as yup from "yup";
 
@@ -8,6 +8,7 @@ function NewPost({ user }) {
     const [isLoading, setIsLoading] = useState(false);
     const [errors, setErrors] = useState([]);
     const [blogs, setBlogs] = useState([]);
+    const nav = useNavigate()
 
 
     const formSchema = yup.object().shape({
@@ -36,6 +37,7 @@ function NewPost({ user }) {
             }).then((r) => {
                 setIsLoading(false)
                 if (r.ok) {
+                    nav('/profile')
                     window.location.reload();
                 } else {
                     console.log(r)
@@ -45,6 +47,7 @@ function NewPost({ user }) {
     });
 
     if (!user) return <Link to="/login">Please Login First</Link>;
+    else if (user.blogs.length === 0) return <Link to="/new-blog">Please Create a Blog First</Link>;
 
     function getBlogs() {
         setIsLoading(true);

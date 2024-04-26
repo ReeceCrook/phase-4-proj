@@ -1,10 +1,11 @@
 import { useState } from "react"
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useFormik } from "formik";
 import * as yup from "yup";
 
 function NewBlog({ user }) {
     const [isLoading, setIsLoading] = useState(false);
+    const nav = useNavigate()
 
     const formSchema = yup.object().shape({
         name: yup.string().required("Must enter a title").max(50).min(5),
@@ -36,6 +37,7 @@ function NewBlog({ user }) {
             }).then((r) => {
                 setIsLoading(false)
                 if (r.ok) {
+                    nav("/profile")
                     window.location.reload();
                 } else {
                     console.log(r)
@@ -65,6 +67,7 @@ function NewBlog({ user }) {
                     onChange={formik.handleChange}
                 />
                 <p style={{ color: "red" }}> {formik.errors.description}</p>
+                <label htmlFor="isShared">Add a  Co-Owner?</label>
                 <input
                     type="checkbox"
                     id="isShared"
@@ -75,7 +78,7 @@ function NewBlog({ user }) {
 
                 {formik.values.isShared ? (
                     <div>
-                        <label htmlFor="coOwnerId">co owner</label>
+                        <label htmlFor="coOwnerId">co-owner's user ID</label>
                         <input
                             type="number"
                             id="coOwnerId"
