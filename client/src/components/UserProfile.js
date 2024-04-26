@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 
 import '../css/UserProfile.css'
 
-function UserProfile({ user }) {
+function UserProfile({ user, setUser, blogs, setBlogs }) {
     const [allBlogs, setAllBlogs] = useState([])
     const [posts, setPosts] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -16,6 +16,7 @@ function UserProfile({ user }) {
     const [newUserName, setNewUserName] = useState("")
     const [newPassword, setNewPassword] = useState("")
     const [confirmNewPassword, setConfirmNewPassword] = useState("")
+
 
     const nav = useNavigate()
 
@@ -39,6 +40,7 @@ function UserProfile({ user }) {
             });
         }
     }, [user]);
+
 
     function getAllBlogs() {
         setIsLoading(true);
@@ -70,7 +72,6 @@ function UserProfile({ user }) {
                     throw new Error(r.statusText);
                 }
             }).then((res) => {
-                console.log(res)
                 setPostByBlog(res)
 
             }).catch((error) => {
@@ -83,8 +84,7 @@ function UserProfile({ user }) {
         fetch(`/user/${user.id}`, {
             method: "DELETE",
         }).then((r) => {
-            console.log(r)
-            window.location.reload();
+            setUser(null)
         });
     }
     function handleDeleteProfile() {
@@ -99,10 +99,8 @@ function UserProfile({ user }) {
             method: "DELETE",
         }).then((r) => {
             if (r.ok) {
-                console.log(r)
-                window.location.reload();
+                setBlogs((blogs) => blogs.filter(blog => blog.id !== id))
             } else {
-                console.log("Failed", r)
             }
 
         });
@@ -119,10 +117,8 @@ function UserProfile({ user }) {
             method: "DELETE",
         }).then((r) => {
             if (r.ok) {
-                console.log(r)
-                window.location.reload();
+                setPosts((posts) => posts.filter(post => post.id !== id))
             } else {
-                console.log("Failed", r)
             }
 
         });
@@ -149,11 +145,13 @@ function UserProfile({ user }) {
 
                 .then((r) => {
                     if (r.ok) {
-                        window.location.reload();
                         return r.json()
                     }
-
-                }).catch((error) => {
+                }).then(r => {
+                    setUser(r)
+                    setOpenUserNameSettings(false)
+                })
+                .catch((error) => {
                     setErrors([error.Message]);
                     setIsLoading(false);
                 });
@@ -174,9 +172,11 @@ function UserProfile({ user }) {
 
                 .then((r) => {
                     if (r.ok) {
-                        window.location.reload();
                         return r.json()
                     }
+                }).then(r => {
+                    setUser(r)
+                    setOpenPasswordSettings(false)
                 }).catch((error) => {
                     setErrors([error.Message]);
                     setIsLoading(false);
@@ -186,6 +186,9 @@ function UserProfile({ user }) {
 
 
     if (!user) return <Link to="/login">Login</Link>;
+    const { id, username, date_joined } = user;
+    const userBlogs = blogs.filter(blog => blog.owner_id === id)
+
     if (openUserNameSettings) {
         return (
             <div>
@@ -227,7 +230,6 @@ function UserProfile({ user }) {
         )
     }
 
-    const { id, username, date_joined, blogs } = user;
 
     return (
         <div className="user-profile-wrapper">
@@ -243,14 +245,14 @@ function UserProfile({ user }) {
 
             <div className="tab-buttons">
                 <button onClick={() => setActiveTab('blogs')} className={activeTab === 'blogs' ? 'active' : ''}>Your Personal Blogs</button>
-                <button onClick={() => setActiveTab('shared-blogs')}>All Blogs</button>
+                <button onClick={() => setActiveTab('shared-blogs')} className={activeTab === 'shared-blogs' ? 'active' : ''}>All Blogs</button>
                 <button onClick={() => setActiveTab('posts')} className={activeTab === 'posts' ? 'active' : ''}>Your Posts</button>
                 <button onClick={() => nav('/new-blog')}>Create New Blog</button>
                 {postByBlog.length > 0 ? <button onClick={() => setPostByBlog([])}>Return to Blogs</button> : ''}
                 {postByBlog.length > 0 ? <button onClick={() => nav('/new-post')}>Add New Post</button> : ''}
             </div>
 
-            {postByBlog.length > 0 && activeTab === '' ? (
+            {isLoading ? <p>Loading...</p> : postByBlog.length > 0 && activeTab === '' ? (
                 <div>
                     {postByBlog.map((post) => (
                         <div key={post.id} className="user-posts">
@@ -264,7 +266,7 @@ function UserProfile({ user }) {
                 </div>
             ) : activeTab === 'blogs' ? (
                 <div className="user-blogs-wrapper tab-content">
-                    {blogs.map((blog) => (
+                    {userBlogs ? userBlogs.map((blog) => (
                         <div key={blog.id} className="user-blogs">
                             <h2><strong>Title:</strong><br /> {blog.name}</h2>
                             <p><strong>Date Created:</strong><br /> {blog.date_created}</p>
@@ -272,7 +274,7 @@ function UserProfile({ user }) {
                             <button onClick={() => getPostsByBlog(blog.id)}>View This Blogs Posts</button>
                             <button onClick={() => handleDeleteBlog(blog.id)}>Perminently delete this blog?</button>
                         </div>
-                    ))}
+                    )) : <h1>No Blogs</h1>}
                 </div>
             ) : activeTab === 'shared-blogs' ? (
                 <div className="user-blogs-wrapper tab-content">
@@ -303,6 +305,7 @@ function UserProfile({ user }) {
                                 <p><strong>Date Created:</strong><br /> {post.date_created}</p>
                                 <p><strong>Description:</strong><br /> {post.description}</p>
                                 <p><strong>Content:</strong><br /> {post.content}</p>
+                                <button onClick={() => handleDeletePost(post.id)}>Perminently delete this post?</button>
                             </div>
                         ))
                     )}

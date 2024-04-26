@@ -2,19 +2,17 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../css/BlogList.css"
 
-function BlogList() {
-    const [blogs, setBlogs] = useState([])
-    const [isLoading, setIsLoading] = useState(true);
+function BlogList({ user, blogs, setBlogs, setFavorites, isLoading, setIsLoading }) {
     const nav = useNavigate()
 
-    useEffect(() => {
-        fetch("/blog")
-            .then((r) => r.json())
-            .then((r) => {
-                setBlogs(r)
-                setIsLoading(false)
-            });
-    }, []);
+    // useEffect(() => {
+    //     fetch("/blog")
+    //         .then((r) => r.json())
+    //         .then((r) => {
+    //             setBlogs(r)
+    //             setIsLoading(false)
+    //         }).then(console.log("IN SET BLOGS"))
+    // }, []);
 
     function favoriteBlog(id) {
         fetch("/favorite", {
@@ -27,11 +25,14 @@ function BlogList() {
             }),
         }).then((r) => {
             if (r.ok) {
-                console.log(r);
-                window.location.reload();
-            } else {
-                console.log(r);
+                return r.json();
             }
+        }).then((res) => {
+            setFavorites((favs) => [...favs, res])
+            setIsLoading(false)
+        }).catch((error) => {
+            console.error("Error:", error);
+            setIsLoading(false)
         });
     }
 

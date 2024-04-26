@@ -3,12 +3,10 @@ import { Link } from "react-router-dom";
 
 
 
-function FavoriteList({ user }) {
-    const [favorites, setFavorites] = useState([])
+function FavoriteList({ user, favorites, setFavorites }) {
 
     useEffect(() => {
         if (user) {
-
             Promise.all(user.favorite_blogs.map((blog) =>
                 fetch(`/blog/${blog.id}`)
                     .then((r) => {
@@ -19,8 +17,12 @@ function FavoriteList({ user }) {
                         }
                     })
             )).then((responses) => {
-                setFavorites(responses.flat());
-
+                setFavorites((currentFavorites) => {
+                    const updatedFavorites = responses.filter(newFavorite =>
+                        !currentFavorites.some(oldFavorite => oldFavorite.id === newFavorite.id)
+                    );
+                    return [...currentFavorites, ...updatedFavorites];
+                });
             })
         }
     }, [user]);
@@ -29,9 +31,16 @@ function FavoriteList({ user }) {
         fetch(`/favorite/${id}`, {
             method: "DELETE",
         }).then((r) => {
-            window.location.reload();
+            if (!r.ok) {
+                throw new Error(r.statusText);
+            }
+        }).then(() => {
+            setFavorites(favs => favs.filter(fav => fav.id !== id))
+
+        }).catch(error => {
+            console.error('Error deleting favorite:', error);
         });
-    }
+    };
 
     return (
         <div>

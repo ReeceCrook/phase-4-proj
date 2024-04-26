@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useFormik } from "formik";
 import * as yup from "yup";
 
-function NewBlog({ user }) {
+function NewBlog({ user, setBlogs }) {
     const [isLoading, setIsLoading] = useState(false);
     const nav = useNavigate()
 
@@ -37,8 +37,8 @@ function NewBlog({ user }) {
             }).then((r) => {
                 setIsLoading(false)
                 if (r.ok) {
+                    r.json().then((blog) => setBlogs((blogs) => [...blogs, blog]))
                     nav("/profile")
-                    window.location.reload();
                 } else {
                     console.log(r)
                 }

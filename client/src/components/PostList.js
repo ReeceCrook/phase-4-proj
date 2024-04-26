@@ -2,8 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import "../css/PostList.css"
 
-function PostList() {
-    const [posts, setPosts] = useState([])
+function PostList({ posts, setPosts }) {
 
     useEffect(() => {
         fetch("/post")

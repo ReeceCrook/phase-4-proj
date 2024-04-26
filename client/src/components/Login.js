@@ -1,27 +1,15 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import LoginForm from "../components/LoginForm";
 import SignUpForm from "../components/SignUpForm";
 
 function Login({ setUser, user }) {
     const [showLogin, setShowLogin] = useState(true);
-    const [submitted, setSubmitted] = useState(false);
-    const nav = useNavigate();
-
-    useEffect(() => {
-        if (submitted) {
-            nav("/");
-            window.location.reload();
-        }
-
-    }, [submitted])
 
     function logout() {
         fetch("/logout", {
             method: "DELETE",
         }).then((r) => {
-            console.log(r)
-            window.location.reload();
+            setUser(null)
         });
     }
 
@@ -34,7 +22,7 @@ function Login({ setUser, user }) {
                 </div>) :
                 showLogin ?
                     <div>
-                        <LoginForm setUser={setUser} setSubmitted={setSubmitted} />
+                        <LoginForm setUser={setUser} />
                         <p>
                             Don't have an account? &nbsp;
                             <button onClick={() => setShowLogin(false)}>
@@ -43,7 +31,7 @@ function Login({ setUser, user }) {
                         </p>
                     </div> :
                     <div>
-                        <SignUpForm setSubmitted={setSubmitted} />
+                        <SignUpForm setUser={setUser} />
                         <p>
                             Already have an account? &nbsp;
                             <button onClick={() => setShowLogin(true)}>

@@ -4,7 +4,7 @@ import { useFormik } from "formik";
 import * as yup from "yup";
 
 
-function NewPost({ user }) {
+function NewPost({ user, setPosts }) {
     const [isLoading, setIsLoading] = useState(false);
     const [errors, setErrors] = useState([]);
     const [blogs, setBlogs] = useState([]);
@@ -37,8 +37,8 @@ function NewPost({ user }) {
             }).then((r) => {
                 setIsLoading(false)
                 if (r.ok) {
+                    r.json().then(r => setPosts((posts) => [...posts, r]))
                     nav('/profile')
-                    window.location.reload();
                 } else {
                     console.log(r)
                 }

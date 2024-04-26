@@ -1,10 +1,13 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useFormik } from "formik";
 import * as yup from "yup";
 
 
-function LoginForm({ setUser, setSubmitted }) {
+function LoginForm({ setUser }) {
     const [isLoading, setIsLoading] = useState(false);
+    const nav = useNavigate();
+
 
     const formSchema = yup.object().shape({
         username: yup.string().required("Must enter a username").max(15).min(3),
@@ -28,8 +31,8 @@ function LoginForm({ setUser, setSubmitted }) {
             }).then((r) => {
                 setIsLoading(false);
                 if (r.ok) {
-                    setSubmitted(true);
                     r.json().then((user) => setUser(user));
+                    nav('/profile')
                 }
             });
         },
