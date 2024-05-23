@@ -1,9 +1,18 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { addFavorite } from "../actions/favoriteActions";
+
 import { useNavigate } from "react-router-dom";
 import "../css/BlogList.css"
 
-function BlogList({ user, blogs, setBlogs, setFavorites, isLoading, setIsLoading }) {
-    const nav = useNavigate()
+function BlogList({ isLoading, setIsLoading }) {
+    // const favorites = useSelector((state) => state.favorites.favorites);
+    // const user = useSelector((state) => state.user.user);
+    const blogs = useSelector((state) => state.blogs.blogs);
+
+    const dispatch = useDispatch();
+    const nav = useNavigate();
+
 
     // useEffect(() => {
     //     fetch("/blog")
@@ -28,14 +37,13 @@ function BlogList({ user, blogs, setBlogs, setFavorites, isLoading, setIsLoading
                 return r.json();
             }
         }).then((res) => {
-            setFavorites((favs) => [...favs, res])
+            dispatch(addFavorite(res));
             setIsLoading(false)
         }).catch((error) => {
             console.error("Error:", error);
             setIsLoading(false)
         });
     }
-
     return (
         <div className="blogs-wrapper">
             {isLoading ? <h1 style={{ position: "absolute", top: "30%", left: "45%" }}>Loading Blogs...</h1> : blogs.length > 0 ? blogs.map((blog) => {

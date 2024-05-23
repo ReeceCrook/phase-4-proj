@@ -1,9 +1,16 @@
+import "../css/NewBlog.css"
 import { useState } from "react"
+import { useSelector, useDispatch } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import { useFormik } from "formik";
 import * as yup from "yup";
+import { addBlog } from '../actions/blogActions'
 
-function NewBlog({ user, setBlogs }) {
+function NewBlog() {
+    const user = useSelector((state) => state.user.user);
+    //const blogs = useSelector((state) => state.blogs.blogs);
+    const dispatch = useDispatch()
+
     const [isLoading, setIsLoading] = useState(false);
     const nav = useNavigate()
 
@@ -37,7 +44,7 @@ function NewBlog({ user, setBlogs }) {
             }).then((r) => {
                 setIsLoading(false)
                 if (r.ok) {
-                    r.json().then((blog) => setBlogs((blogs) => [...blogs, blog]))
+                    r.json().then((blog) => dispatch(addBlog((blog))));
                     nav("/profile")
                 } else {
                     console.log(r)
@@ -47,48 +54,55 @@ function NewBlog({ user, setBlogs }) {
     });
     if (!user) return <Link to="/login">Please Login first</Link>;
     return (
-        <div>
+        <div className="new-blog-wrapper">
             <h2>Create Blog</h2>
             <form onSubmit={formik.handleSubmit}>
-                <label htmlFor="name">Title</label>
+                <label className='new-blog-label' htmlFor="name">Title</label><br />
                 <input
                     type="text"
                     id="name"
+                    className='new-blog-formfield'
                     value={formik.values.name}
                     onChange={formik.handleChange}
                 />
                 <p style={{ color: "red" }}> {formik.errors.name}</p>
-                <label htmlFor="description">Description</label>
+                <br /><br /><label className='new-blog-label' htmlFor="description">Description</label><br />
                 <textarea
                     id="description"
+                    name="description"
+                    className='new-blog-formfield'
                     rows="10"
                     cols="50"
                     value={formik.values.description}
                     onChange={formik.handleChange}
                 />
                 <p style={{ color: "red" }}> {formik.errors.description}</p>
-                <label htmlFor="isShared">Add a  Co-Owner?</label>
+                <label className='new-blog-label isShared' htmlFor="isShared">Add a  Co-Owner?</label>
                 <input
                     type="checkbox"
                     id="isShared"
+                    name="isShared"
+                    className='new-blog-formfield'
                     checked={formik.values.isShared}
                     onChange={formik.handleChange}
                 />
                 <p style={{ color: "red" }}> {formik.errors.isShared}</p>
-
+                <br />
                 {formik.values.isShared ? (
                     <div>
-                        <label htmlFor="coOwnerId">co-owner's user ID</label>
+                        <label className='new-blog-label' htmlFor="coOwnerId">co-owner's user ID</label>
                         <input
+                            className='new-blog-formfield'
                             type="number"
                             id="coOwnerId"
+                            name="coOwnerId"
                             value={formik.values.coOwnerId}
                             onChange={formik.handleChange}
                         />
                         <p style={{ color: "red" }}> {formik.errors.coOwnerId}</p>
                     </div>
                 ) : ""}
-                <button type="submit">
+                <button className="new-blog-submit" type="submit">
                     {isLoading ? "Loading..." : "Submit"}
                 </button>
             </form>

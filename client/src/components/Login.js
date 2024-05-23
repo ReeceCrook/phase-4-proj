@@ -1,15 +1,22 @@
 import { useState, useEffect } from "react";
 import LoginForm from "../components/LoginForm";
 import SignUpForm from "../components/SignUpForm";
+import { useSelector, useDispatch } from "react-redux";
+import { setUser } from "../actions/userActions"
 
-function Login({ setUser, user }) {
+
+
+function Login() {
+    const dispatch = useDispatch()
     const [showLogin, setShowLogin] = useState(true);
+    const user = useSelector((state) => state.user.user);
+
 
     function logout() {
         fetch("/logout", {
             method: "DELETE",
         }).then((r) => {
-            setUser(null)
+            dispatch(setUser(null))
         });
     }
 
@@ -22,7 +29,7 @@ function Login({ setUser, user }) {
                 </div>) :
                 showLogin ?
                     <div>
-                        <LoginForm setUser={setUser} />
+                        <LoginForm />
                         <p>
                             Don't have an account? &nbsp;
                             <button onClick={() => setShowLogin(false)}>
@@ -31,7 +38,7 @@ function Login({ setUser, user }) {
                         </p>
                     </div> :
                     <div>
-                        <SignUpForm setUser={setUser} />
+                        <SignUpForm />
                         <p>
                             Already have an account? &nbsp;
                             <button onClick={() => setShowLogin(true)}>

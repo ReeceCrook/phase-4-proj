@@ -1,0 +1,30 @@
+.new-blog-wrapper {
+    padding: 20px;
+    width: 50%;
+    max-width: fit-content;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.new-blog-formfield {
+    float: left;
+    padding: 12px 20px;
+    margin: 8px 0;
+    display: inline;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+.new-blog-label {
+    float: left;
+}
+
+.isShared {
+    padding: 2%;
+
+}
+
+.new-blog-submit {
+    float: right;
+}

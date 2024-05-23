@@ -1,31 +1,27 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { setFavorites, addFavorite, deleteFavorite as deleteFavoriteAction } from "../actions/favoriteActions";
 import { Link } from "react-router-dom";
+import "../css/FavoriteList.css"
 
 
-
-function FavoriteList({ user, favorites, setFavorites }) {
+function FavoriteList() {
+    const user = useSelector((state) => state.user.user)
+    const favorites = useSelector((state) => state.favorites.favorites);
+    const dispatch = useDispatch();
 
     useEffect(() => {
         if (user) {
-            Promise.all(user.favorite_blogs.map((blog) =>
-                fetch(`/blog/${blog.id}`)
-                    .then((r) => {
-                        if (r.ok) {
-                            return r.json();
-                        } else {
-                            throw new Error(r.statusText);
-                        }
-                    })
-            )).then((responses) => {
-                setFavorites((currentFavorites) => {
-                    const updatedFavorites = responses.filter(newFavorite =>
-                        !currentFavorites.some(oldFavorite => oldFavorite.id === newFavorite.id)
-                    );
-                    return [...currentFavorites, ...updatedFavorites];
-                });
-            })
+            fetch(`/user/${user.id}`)
+                .then((r) => {
+                    if (r.ok) {
+                        return r.json();
+                    } else {
+                        throw new Error(r.statusText);
+                    }
+                }).then(r => dispatch(setFavorites(r.favorite_blogs)))
         }
-    }, [user]);
+    }, [user])
 
     function deleteFavorite(id) {
         fetch(`/favorite/${id}`, {
@@ -34,19 +30,16 @@ function FavoriteList({ user, favorites, setFavorites }) {
             if (!r.ok) {
                 throw new Error(r.statusText);
             }
-        }).then(() => {
-            setFavorites(favs => favs.filter(fav => fav.id !== id))
-
+            dispatch(deleteFavoriteAction(id));
         }).catch(error => {
             console.error('Error deleting favorite:', error);
         });
     };
-
     return (
-        <div>
-            {favorites.length > 0 ? favorites.map((favorite) => {
+        <div className="favorites-wrapper">
+            {user && favorites.length ? favorites.map((favorite) => {
                 return (
-                    <div key={favorite.id}>
+                    <div key={favorite.id} className="favorite">
                         <h2>Title: {favorite.name}</h2>
                         <p>
                             Description:<br />

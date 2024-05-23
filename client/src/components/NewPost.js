@@ -1,14 +1,24 @@
+import '../css/NewPost.css'
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useFormik } from "formik";
 import * as yup from "yup";
+import { useSelector, useDispatch } from "react-redux";
+import { setPosts, addPost } from '../actions/postActions'
+import { setUserBlogs, deleteUserBlog } from "../actions/userBlogActions";
 
 
-function NewPost({ user, setPosts }) {
+function NewPost() {
     const [isLoading, setIsLoading] = useState(false);
     const [errors, setErrors] = useState([]);
-    const [blogs, setBlogs] = useState([]);
+    //const [blogs, setBlogs] = useState([]);
     const nav = useNavigate()
+    const dispatch = useDispatch()
+    const posts = useSelector((state) => state.posts.posts);
+    const user = useSelector((state) => state.user.user);
+    const userBlogs = useSelector((state) => state.userBlogs.userBlogs);
+
+
 
 
     const formSchema = yup.object().shape({
@@ -37,7 +47,7 @@ function NewPost({ user, setPosts }) {
             }).then((r) => {
                 setIsLoading(false)
                 if (r.ok) {
-                    r.json().then(r => setPosts((posts) => [...posts, r]))
+                    r.json().then(r => dispatch(addPost(r)))
                     nav('/profile')
                 } else {
                     console.log(r)
@@ -49,7 +59,7 @@ function NewPost({ user, setPosts }) {
     if (!user) return <Link to="/login">Please Login First</Link>;
     else if (user.blogs.length === 0) return <Link to="/new-blog">Please Create a Blog First</Link>;
 
-    function getBlogs() {
+    function getUserBlogs() {
         setIsLoading(true);
         fetch(`/blog-by-user/${user.id}`)
             .then((r) => {
@@ -60,7 +70,7 @@ function NewPost({ user, setPosts }) {
                 }
             })
             .then((res) => {
-                setBlogs(res);
+                dispatch(setUserBlogs(res));
                 setIsLoading(false);
             })
             .catch((error) => {
@@ -69,55 +79,58 @@ function NewPost({ user, setPosts }) {
             });
     }
     return (
-        <div>
+        <div className="new-post-wrapper">
             <h2>Create Post</h2>
             <form onSubmit={formik.handleSubmit}>
-                <label htmlFor="title">Title</label>
+                <label className='new-post-label' htmlFor="title">Title:</label><br />
                 <input
                     type="text"
                     id="title"
                     name="title"
+                    className='new-post-formfield'
                     value={formik.values.title}
                     onChange={formik.handleChange}
-                />
+                /><br /><br />
                 <p style={{ color: "red" }}> {formik.errors.title}</p>
-                <label htmlFor="description">Description</label>
+                <label className='new-post-label' htmlFor="description">Description:</label><br />
                 <textarea
                     id="description"
                     name="description"
+                    className='new-post-formfield'
                     rows="10"
                     cols="50"
                     value={formik.values.description}
                     onChange={formik.handleChange}
                 />
                 <p style={{ color: "red" }}> {formik.errors.description}</p>
-                <label htmlFor="content">Content</label>
+                <label className='new-post-label' htmlFor="content">Content:</label><br />
                 <textarea
                     id="content"
                     name="content"
+                    className='new-post-formfield'
                     rows="10"
                     cols="50"
                     value={formik.values.content}
                     onChange={formik.handleChange}
                 />
                 <p style={{ color: "red" }}> {formik.errors.content}</p>
-                <label htmlFor="blog">Select Blog</label>
                 <select
                     id="blog_id"
                     name="blog_id"
+                    className='new-post-formfield'
                     value={formik.values.blog_id}
-                    onClick={() => getBlogs()}
+                    onClick={() => getUserBlogs()}
                     onChange={formik.handleChange}
                 >
                     <option value="blog_id" id="blog_id">Select a blog</option>
-                    {blogs.map((blog) => (
+                    {userBlogs && userBlogs.length ? userBlogs.map((blog) => (
                         <option key={blog.id} value={blog.id}>
                             {blog.name}
                         </option>
-                    ))}
+                    )) : 'No Blogs'}
                 </select>
                 <p style={{ color: "red" }}> {formik.errors.blog_id}</p>
-                <button type="submit">
+                <button type="submit" className='submitPost'>
                     {isLoading ? "Loading..." : "Submit Post"}
                 </button>
             </form>

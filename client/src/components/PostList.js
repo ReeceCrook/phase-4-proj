@@ -1,13 +1,18 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import "../css/PostList.css"
+import { setPosts } from '../actions/postActions'
+import { useSelector, useDispatch } from "react-redux";
 
-function PostList({ posts, setPosts }) {
+
+function PostList() {
+    const dispatch = useDispatch()
+    const posts = useSelector((state) => state.posts.posts);
 
     useEffect(() => {
         fetch("/post")
             .then((r) => r.json())
-            .then(setPosts);
+            .then((r) => dispatch(setPosts(r)));
     }, []);
 
     return (
@@ -30,9 +35,9 @@ function PostList({ posts, setPosts }) {
             }) :
                 <div>
                     <h2>No Posts Found</h2>
-                    <button as={Link} to="/new-post">
+                    <Link to="/new-post">
                         Make a New Post
-                    </button>
+                    </Link>
                 </div>
             }
         </div>

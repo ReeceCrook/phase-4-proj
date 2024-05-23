@@ -2,12 +2,13 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useFormik } from "formik";
 import * as yup from "yup";
+import { setUser } from "../actions/userActions"
+import { useDispatch } from "react-redux";
 
-
-function SignUpForm({ setUser }) {
+function SignUpForm() {
     const [isLoading, setIsLoading] = useState(false);
     const nav = useNavigate();
-
+    const dispatch = useDispatch()
 
     const formSchema = yup.object().shape({
         username: yup.string().required("Must enter a username").max(15).min(3),
@@ -31,7 +32,7 @@ function SignUpForm({ setUser }) {
             }).then((r) => {
                 setIsLoading(false);
                 if (r.ok) {
-                    r.json().then((user) => setUser(user));
+                    r.json().then((user) => dispatch(setUser(user)));
                     nav('/profile')
                 }
             });

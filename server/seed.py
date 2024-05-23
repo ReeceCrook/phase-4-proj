@@ -1,5 +1,4 @@
 import random
-from random import choice
 from faker import Faker
 from app import app
 from models import db, User, Blog, Post, favorites, shared_blog
@@ -30,35 +29,34 @@ with app.app_context():
     new_blogs = []
     for user in new_users:
         name = fake.company()
-        description = fake.catch_phrase()
+        description = fake.text()
         new_blog = Blog(name=name, description=description, owner=user)
         new_blogs.append(new_blog)
 
     db.session.add_all(new_blogs)
     db.session.commit()
 
-    new_posts = []
-    for _ in range(20):
-        title = fake.sentence()
-        description = fake.sentence()
-        content = fake.paragraph()
-        blog = choice(new_blogs)
-        new_post = Post(title=title, description=description, content=content, blog=blog)
-        new_posts.append(new_post)
-
-    db.session.add_all(new_posts)
-    db.session.commit()
-
     for user in new_users:
         for _ in range(random.randint(1, 2)):
             name = fake.company()
-            description = fake.catch_phrase()
+            description = fake.text()
             new_blog = Blog(name=name, description=description, owner=user)
             db.session.add(new_blog)
             db.session.commit()
-            shared_users = [u for u in new_users if u != user and random.randint(0, 1)]
+            shared_users = [u for u in new_users if u != user]
+            random.shuffle(shared_users)
+            primary_owner_chosen = False
+            co_owner_chosen = False
             for shared_user in shared_users:
-                shared_blog_instance = shared_blog.insert().values(user_id=shared_user.id, blog_id=new_blog.id, primary_owner=user.username, co_owner=shared_user.username)
-                db.session.execute(shared_blog_instance)
+                if not primary_owner_chosen:
+                    shared_blog_instance = shared_blog.insert().values(user_id=shared_user.id, blog_id=new_blog.id, primary_owner=user.username, co_owner=shared_user.username)
+                    db.session.execute(shared_blog_instance)
+                    primary_owner_chosen = True
+                elif not co_owner_chosen:
+                    shared_blog_instance = shared_blog.insert().values(user_id=shared_user.id, blog_id=new_blog.id, primary_owner=shared_user.username, co_owner=user.username)
+                    db.session.execute(shared_blog_instance)
+                    co_owner_chosen = True
+                if primary_owner_chosen and co_owner_chosen:
+                    break
 
     db.session.commit()

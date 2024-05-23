@@ -62,8 +62,11 @@ class User(db.Model, SerializerMixin):
 class Blog(db.Model, SerializerMixin):
     __tablename__ = 'blogs'
     serialize_rules = (
-        "-users",
-        "-posts",
+        "-users.shared_blogs",
+        "-users.blogs",
+        "-users.favorite_blogs",
+        "-posts.blog",
+        "-posts.user",
         "-favorited_by",
         "-owner"
     )
@@ -84,6 +87,20 @@ class Blog(db.Model, SerializerMixin):
     def __repr__(self):
         return f'ID: {self.id}, Owner ID: {self.owner_id}, Title: {self.name}, Description: {self.description}, Date Created: {self.date_created}'
     
+    @validates('name')
+    def validate_name(self, key, name):
+        if not any(char.isalpha() for char in name):
+            raise ValueError("Name must contain at least one letter.")
+        elif len(name) > 50 or len(name) < 3:
+            raise ValueError("Name must be at least 3 characters and at most 50 characters.")
+        return name
+    
+    @validates('description')
+    def validate_description(self, key, description):
+        if len(description) > 500:
+            raise ValueError("Description cant be more than 500 characters.")
+        return description
+
     @hybrid_property
     def serialized_owner(self):
         return self.owner.to_dict(rules=('-blogs', '-favorite_blogs'))
@@ -105,9 +122,6 @@ class Blog(db.Model, SerializerMixin):
 
 class Post(db.Model, SerializerMixin):
     __tablename__ = 'posts'
-    serialize_rules = (
-        "-blog_id",
-    )
 
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String, nullable=False)
@@ -119,6 +133,12 @@ class Post(db.Model, SerializerMixin):
 
     def __repr__(self):
         return f'Title: {self.title}, Description: {self.description}, Date Created: {self.date_created}'
+    
+    @validates('title')
+    def validate_title(self, key, title):
+        if len(title) > 50:
+            raise ValueError("Title cant be more than 50 characters.")
+        return title
     
     @validates("content")
     def validate_content(self, key, content):

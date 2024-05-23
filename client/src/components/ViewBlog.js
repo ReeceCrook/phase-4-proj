@@ -9,14 +9,11 @@ function ViewBlog() {
 
     useEffect(() => {
         fetch(`/blog/${id}`)
-            .then((r) => r.json())
-            .then((r) => {
-                setBlog(r)
-            })
+            .then((r) => r.json().then(r => setBlog(r)))
     }, [id])
 
     useEffect(() => {
-        if (Object.keys(blog).length > 0) {
+        if (Object.keys(blog).length) {
             fetch(`/post-by-blog/${blog.id}`)
                 .then((r) => {
                     if (r.ok) {

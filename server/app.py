@@ -1,6 +1,5 @@
 from flask import request, session, make_response, jsonify
 from flask_restful import Resource
-from werkzeug.utils import secure_filename
 
 from config import app, db, api
 from models import User, Blog, Post, favorites, shared_blog
@@ -57,29 +56,12 @@ class UserIndex(Resource):
     def get(self):
         return [user.to_dict() for user in User.query.all()], 200
     
-    # def post(self):
-    #     json = request.get_json()
-    #     if 'user_id' in session:
-    #         user = User(
-    #             username = json.get("username"),
-    #             image_url = json.get("image_url"),
-    #             _password_hash = json.get("password"),
-    #         )
-            
-    #         if user and len(user.username) <= 20:
-    #             db.session.add(user)
-    #             db.session.commit()
-    #             return user.to_dict(), 201
-            
-    #         return {"Message": "One or more fields are invalid"}, 422
-        
-    #     return {"Message": "User not logged in"}, 401
-    
 class UserByID(Resource):
-
     def get(self, id):
         user = User.query.filter(User.id == id).first().to_dict()
-        return make_response(jsonify(user), 200)
+        if user:
+            return make_response(jsonify(user), 200)
+        return {"Message": f"User {id} not found"}, 401
     
     def patch(self, id):
         if session['user_id'] == id:
@@ -101,6 +83,7 @@ class UserByID(Resource):
             )
 
             return response
+        return {"Message": "User not logged in"}, 401
     
     def delete(self, id):
         if session['user_id'] == id:
@@ -193,32 +176,36 @@ class BlogByID(Resource):
         json = request.get_json()
 
         blog = Blog.query.filter(Blog.id == id).first()
-        for attr in json:
-            setattr(blog, attr, json[attr])
-        
-        db.session.add(blog)
-        db.session.commit()
+        if blog:
+            for attr in json:
+                setattr(blog, attr, json[attr])
+            
+            db.session.add(blog)
+            db.session.commit()
 
-        response = make_response(
-            blog.to_dict(),
-            200
-        )
+            response = make_response(
+                blog.to_dict(),
+                200
+            )
 
-        return response
+            return response
+        return {"Message": "Blog not found"}, 401
+
     
     def delete(self, id):
         blog = Blog.query.filter(Blog.id == id).first()
 
-        db.session.delete(blog)
-        db.session.commit()
+        if blog:
+            db.session.delete(blog)
+            db.session.commit()
 
+            response = make_response(
+                "Deleted",
+                204
+            )
 
-        response = make_response(
-            "Deleted",
-            204
-        )
-
-        return response
+            return response
+        return {"Message": "Blog not found"}, 401
 
 class BlogByUserID(Resource):
     def get(self, id):
@@ -265,33 +252,35 @@ class PostByID(Resource):
     def patch(self, id):
         json = request.get_json()
         post = Post.query.filter(Post.id == id).first()
-        for attr in json:
-            setattr(post, attr, json[attr])
-        
-        db.session.add(post)
-        db.session.commit()
+        if post:
+            for attr in json:
+                setattr(post, attr, json[attr])
+            
+            db.session.add(post)
+            db.session.commit()
 
-        response = make_response(
-            post.to_dict(),
-            200
-        )
+            response = make_response(
+                post.to_dict(),
+                200
+            )
 
-        return response
+            return response
+        return {"Message": "Post not found"}, 401
     
     def delete(self, id):
 
         post = Post.query.filter(Post.id == id).first()
+        if post:
+            db.session.delete(post)
+            db.session.commit()
 
-        db.session.delete(post)
-        db.session.commit()
+            response = make_response(
+                "Deleted",
+                204
+            )
 
-
-        response = make_response(
-            "Deleted",
-            204
-        )
-
-        return response
+            return response
+        return {"Message": "Post not found"}, 401
     
 class PostByBlogID(Resource):
     def get(self, id):
@@ -347,8 +336,17 @@ class FavoriteByUserID(Resource):
                 return "Favorite not found", 404
             
         return "User not logged in", 401
-    
 
+class BlogPosts(Resource):
+    def get(self, n):
+        blogs = Blog.query.all()
+        blog_list = []
+        for blog in blogs:
+            if len(blog.posts) >= n:
+                blog_list.append(blog)
+        return [blog.to_dict() for blog in blog_list]
+                
+api.add_resource(BlogPosts, "/blog_posts/<int:n>")
 api.add_resource(Signup, '/signup', endpoint='signup')
 api.add_resource(CheckSession, '/check_session', endpoint='check_session')
 api.add_resource(Login, '/login', endpoint='login')
