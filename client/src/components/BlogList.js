@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { addFavorite } from "../actions/favoriteActions";
 
@@ -6,43 +5,38 @@ import { useNavigate } from "react-router-dom";
 import "../css/BlogList.css"
 
 function BlogList({ isLoading, setIsLoading }) {
-    // const favorites = useSelector((state) => state.favorites.favorites);
-    // const user = useSelector((state) => state.user.user);
     const blogs = useSelector((state) => state.blogs.blogs);
+    const user = useSelector((state) => state.user.user);
+
 
     const dispatch = useDispatch();
     const nav = useNavigate();
 
-
-    // useEffect(() => {
-    //     fetch("/blog")
-    //         .then((r) => r.json())
-    //         .then((r) => {
-    //             setBlogs(r)
-    //             setIsLoading(false)
-    //         }).then(console.log("IN SET BLOGS"))
-    // }, []);
-
     function favoriteBlog(id) {
-        fetch("/favorite", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                blog_id: id
-            }),
-        }).then((r) => {
-            if (r.ok) {
-                return r.json();
-            }
-        }).then((res) => {
-            dispatch(addFavorite(res));
-            setIsLoading(false)
-        }).catch((error) => {
-            console.error("Error:", error);
-            setIsLoading(false)
-        });
+        if (user) {
+            fetch("/favorite", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    blog_id: id
+                }),
+            }).then((r) => {
+                if (r.ok) {
+                    return r.json();
+                }
+            }).then((res) => {
+                dispatch(addFavorite(res));
+                setIsLoading(false)
+            }).catch((error) => {
+                console.error("Error:", error);
+                setIsLoading(false)
+            });
+        } else {
+            window.alert("Please Login or Signup to Favorite")
+        }
+
     }
     return (
         <div className="blogs-wrapper">

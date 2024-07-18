@@ -18,6 +18,7 @@ function PostList() {
     return (
         <div className="posts-wrapper">
             {posts.length > 0 ? posts.map((post) => {
+                console.log(post)
                 return (
                     <div key={post.id} className="posts">
                         <h2>Title: <br /> {post.title}</h2>

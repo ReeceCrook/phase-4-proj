@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { setFavorites, addFavorite, deleteFavorite as deleteFavoriteAction } from "../actions/favoriteActions";
+import { setFavorites, deleteFavorite as deleteFavoriteAction } from "../actions/favoriteActions";
 import { Link } from "react-router-dom";
 import "../css/FavoriteList.css"
 
@@ -35,6 +35,7 @@ function FavoriteList() {
             console.error('Error deleting favorite:', error);
         });
     };
+
     return (
         <div className="favorites-wrapper">
             {user && favorites.length ? favorites.map((favorite) => {
