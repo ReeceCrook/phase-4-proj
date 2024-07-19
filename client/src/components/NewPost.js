@@ -11,7 +11,7 @@ import { setUserBlogs, deleteUserBlog } from "../actions/userBlogActions";
 function NewPost() {
     const [isLoading, setIsLoading] = useState(false);
     const [errors, setErrors] = useState([]);
-    //const [blogs, setBlogs] = useState([]);
+    const blogs = useSelector((state) => state.blogs.blogs);
     const nav = useNavigate()
     const dispatch = useDispatch()
     const posts = useSelector((state) => state.posts.posts);
@@ -55,9 +55,12 @@ function NewPost() {
             });
         },
     });
-
     if (!user) return <Link to="/login">Please Login First</Link>;
-    else if (user.blogs.length === 0) return <Link to="/new-blog">Please Create a Blog First</Link>;
+    else if (userBlogs.length === 0) {
+        return <Link to="/new-blog">Please Create a Blog First</Link>;
+    }
+    console.log(userBlogs)
+    // else if (user.blogs.length === 0) return <Link to="/new-blog">Please Create a Blog First</Link>;
 
     function getUserBlogs() {
         setIsLoading(true);

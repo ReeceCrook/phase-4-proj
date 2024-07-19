@@ -45,6 +45,7 @@ function NewBlog() {
                 setIsLoading(false)
                 if (r.ok) {
                     r.json().then((blog) => dispatch(addBlog((blog))));
+                    console.log(r)
                     nav("/profile")
                 } else {
                     console.log(r)

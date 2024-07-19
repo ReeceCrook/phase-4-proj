@@ -21,6 +21,8 @@ class User(db.Model, SerializerMixin):
     __tablename__ = 'users'
     serialize_rules = (
         "-_password_hash",
+        "-posts.user",
+        "-posts.blog",
     )
 
     id = db.Column(db.Integer, primary_key=True)
@@ -30,6 +32,7 @@ class User(db.Model, SerializerMixin):
 
     shared_blogs = db.relationship('Blog', secondary='shared_blog', back_populates='users')
     blogs = db.relationship('Blog', back_populates='owner', cascade='all,delete')
+    posts = db.relationship('Post', back_populates='user', cascade='all,delete')
 
     favorite_blogs = db.relationship('Blog', secondary='favorites', back_populates='favorited_by', cascade='all,delete')
     
@@ -129,10 +132,12 @@ class Post(db.Model, SerializerMixin):
     content = db.Column(db.String, nullable=False)
     date_created = db.Column(db.DateTime, default=datetime.now())
 
+    user = db.relationship('User', back_populates='posts')
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     blog_id = db.Column(db.Integer, db.ForeignKey('blogs.id'), nullable=False)
-
+    
     def __repr__(self):
-        return f'Title: {self.title}, Description: {self.description}, Date Created: {self.date_created}'
+        return f'User ID: {self.user_id}, Title: {self.title}, Description: {self.description}, Date Created: {self.date_created}'
     
     @validates('title')
     def validate_title(self, key, title):

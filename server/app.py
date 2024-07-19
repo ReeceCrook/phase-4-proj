@@ -231,12 +231,14 @@ class PostIndex(Resource):
                 title = json.get("title"),
                 description = json.get("description"),
                 content = json.get("content"),
-                blog_id = json.get("blog_id")
+                blog_id = json.get("blog_id"),
+                user_id = user.id
             )
 
             if post and len(post.description) <= 150:
                 db.session.add(post)
                 db.session.commit()
+                print(user)
                 return post.to_dict(), 201
             
             return {"Message": "One or more fields are invalid"}, 422
