@@ -10,3 +10,13 @@
     padding: 20px;
     text-align: center;
 }
+
+.favoriteButton {
+    padding: 5px;
+    float: left;
+}
+
+.viewBlogButton {
+    padding: 5px;
+    float: right;
+}
