@@ -45,7 +45,7 @@ function BlogList({ isLoading, setIsLoading }) {
                     <div key={blog.id} className="blogs" name={blog.name}>
                         <button onClick={() => favoriteBlog(blog.id)} style={{ float: "left" }}>Favorite This Blog</button>
                         <button onClick={() => nav(`/blogs/${blog.id}`)} style={{ float: "right" }}>View this Blogs Posts</button>
-                        <h2><strong>Title:</strong> {blog.name}</h2>
+                        <h2 className="blog-title">{blog.name}</h2>
                         <p>
                             <strong>Description:</strong><br />
                             {blog.description}<br />
