@@ -18,7 +18,7 @@ function App() {
 
   const [isLoading, setIsLoading] = useState(true);
   const [favorites, setFavorites] = useState([]);
-  const [posts, setPosts] = useState([])
+  // const [posts, setPosts] = useState([])
   const user = useSelector((state) => state.user.user);
   const blogs = useSelector((state) => state.blogs.blogs);
   const dispatch = useDispatch()
@@ -57,7 +57,7 @@ function App() {
         <Route exact path="/" element={<BlogList setIsLoading={setIsLoading} isLoading={isLoading} />} />
         <Route exact path="/login" element={<Login />} />
         <Route exact path="/posts" element={<PostList />} />
-        <Route exact path="/new-post" element={<NewPost user={user} setPosts={setPosts} />} />
+        <Route exact path="/new-post" element={<NewPost user={user} />} />
         <Route path='/blogs/:id' element={<ViewBlog />} />
         <Route exact path="/new-blog" element={<NewBlog user={user} setBlogs={setBlogs} />} />
         <Route exact path="/profile" element={<UserProfie user={user} setUser={setUser} blogs={blogs} setBlogs={setBlogs} />} />

@@ -4,22 +4,19 @@ import { Link, useNavigate } from "react-router-dom";
 import { useFormik } from "formik";
 import * as yup from "yup";
 import { useSelector, useDispatch } from "react-redux";
-import { setPosts, addPost } from '../actions/postActions'
-import { setUserBlogs, deleteUserBlog } from "../actions/userBlogActions";
+import { addPost } from '../actions/postActions'
+import { setUserBlogs } from "../actions/userBlogActions";
 
 
 function NewPost() {
     const [isLoading, setIsLoading] = useState(false);
     const [errors, setErrors] = useState([]);
-    const blogs = useSelector((state) => state.blogs.blogs);
+    // const blogs = useSelector((state) => state.blogs.blogs);
     const nav = useNavigate()
     const dispatch = useDispatch()
-    const posts = useSelector((state) => state.posts.posts);
+    // const posts = useSelector((state) => state.posts.posts);
     const user = useSelector((state) => state.user.user);
     const userBlogs = useSelector((state) => state.userBlogs.userBlogs);
-
-
-
 
     const formSchema = yup.object().shape({
         title: yup.string().required("Must enter a title").max(50).min(5),

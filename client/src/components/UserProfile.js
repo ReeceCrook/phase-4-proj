@@ -3,18 +3,17 @@ import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { setUser, removeUser } from "../actions/userActions";
-import { setUserBlogs, deleteUserBlog } from "../actions/userBlogActions"
+import { setUserBlogs } from "../actions/userBlogActions"
 import { deletePost as deletePostAction } from "../actions/postActions"
 import { deleteBlog as deleteBlogAction } from "../actions/blogActions"
 
 import '../css/UserProfile.css'
 
 function UserProfile() {
-    const [posts, setPosts] = useState([]);
+    // const [posts, setPosts] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [errors, setErrors] = useState([]);
     const [activeTab, setActiveTab] = useState('blogs');
-    const [postByBlog, setPostByBlog] = useState([])
     const [openUserNameSettings, setOpenUserNameSettings] = useState(false)
     const [openPasswordSettings, setOpenPasswordSettings] = useState(false)
     const [newUserName, setNewUserName] = useState("")
@@ -25,47 +24,19 @@ function UserProfile() {
     const postss = useSelector((state) => state.posts.posts);
     const user = useSelector((state) => state.user.user);
     const allUserBlogs = useSelector((state) => state.userBlogs.userBlogs);
+    const posts = useSelector((state) => state.posts.posts);
+    let userPosts = posts.filter((post) => post.user_id === user.id)
 
     const dispatch = useDispatch();
 
     const nav = useNavigate()
 
     useEffect(() => {
-        getAllUserBlogs()
-        async function fetchData() {
-            if (user) {
-                setIsLoading(true);
-                try {
-                    const userBlogResponses = await Promise.all(user.blogs.map((blog) =>
-                        fetch(`/post-by-blog/${blog.id}`)
-                            .then((r) => r.ok ? r.json() : null)
-                    ));
-                    const userBlogs = userBlogResponses.filter(blog => blog);
-
-                    const sharedBlogResponses = await Promise.all(user.shared_blogs.map((blog) =>
-                        fetch(`/post-by-blog/${blog.id}`)
-                            .then((r) => r.ok ? r.json() : null)
-                    ));
-                    const sharedBlogs = sharedBlogResponses.filter(blog => blog);
-
-                    setPosts([...userBlogs.flat(), ...sharedBlogs.flat()]);
-                    setIsLoading(false);
-                } catch (error) {
-                    setErrors([error.message]);
-                    setIsLoading(false);
-                }
-            }
-        };
-
-        fetchData();
-    }, [user, postss]);
-
-
-    function getAllUserBlogs() {
         setIsLoading(true);
         if (user) {
             fetch(`/blog-by-user/${user.id}`)
                 .then((r) => {
+                    // console.log(posts.filter((post) => post.user_id === user.id))
                     if (r.ok) {
                         return r.json();
                     } else {
@@ -82,7 +53,37 @@ function UserProfile() {
                 });
         }
 
-    }
+
+        // async function fetchData() {
+        //     if (user) {
+        //         setIsLoading(true);
+        //         try {
+        //             const userBlogResponses = await Promise.all(user.blogs.map((blog) =>
+        //                 fetch(`/post-by-blog/${blog.id}`)
+        //                     .then((r) => r.ok ? r.json() : null)
+        //             ));
+        //             const userBlogs = userBlogResponses.filter(blog => blog);
+
+        //             const sharedBlogResponses = await Promise.all(user.shared_blogs.map((blog) =>
+        //                 fetch(`/post-by-blog/${blog.id}`)
+        //                     .then((r) => r.ok ? r.json() : null)
+        //             ));
+        //             const sharedBlogs = sharedBlogResponses.filter(blog => blog);
+
+        //             setPosts([...userBlogs.flat(), ...sharedBlogs.flat()]);
+        //             setIsLoading(false);
+        //         } catch (error) {
+        //             setErrors([error.message]);
+        //             setIsLoading(false);
+        //         }
+        //     }
+        // };
+
+        // fetchData();
+    }, [user, postss]);
+
+
+
 
     function getPostsByBlog(id) {
         setActiveTab('')
@@ -93,16 +94,6 @@ function UserProfile() {
                 } else {
                     throw new Error(r.statusText);
                 }
-            }).then((res) => {
-                console.log(id, "<== ID || RES ==>", res)
-                if (res.length) {
-                    console.log("in if")
-                    setPostByBlog(res)
-                } else {
-                    setPostByBlog([])
-                }
-
-
             }).catch((error) => {
                 setErrors([error.Message]);
                 setIsLoading(false);
@@ -277,8 +268,8 @@ function UserProfile() {
 
             {isLoading ? <p>Loading...</p> : activeTab === '' ? (
                 <div>
-                    {postByBlog && postByBlog.length ? postByBlog.map((post) => (
-                        <div key={post.id} className="user-posts">
+                    {userPosts && userPosts.length ? userPosts.map((post) => (
+                        <div key={post.id} className="user-posts" >
                             <button onClick={() => handleDeletePost(post.id)}>Perminently delete this post?</button>
                             <h2><strong>Title:</strong><br /> {post.title}</h2>
                             <p><strong>Date Created:</strong><br /> {post.date_created}</p>
@@ -341,7 +332,8 @@ function UserProfile() {
                         ))
                     )}
                 </div>
-            )}
+            )
+            }
             {
                 errors.length > 0 && errors.map((error, index) => (
                     <p key={index} style={{ color: 'red' }}>{error}</p>
