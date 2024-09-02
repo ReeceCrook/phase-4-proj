@@ -11,6 +11,17 @@
     text-align: center;
 }
 
+/* <<<<<<< HEAD
 .blog-title {
     margin-top: 10%;
+=======
+.favoriteButton {
+    padding: 5px;
+    float: left;
 }
+
+.viewBlogButton {
+    padding: 5px;
+    float: right;
+>>>>>>> 9b820a7f357ee04049abe641b95775c81f9acb03
+} */

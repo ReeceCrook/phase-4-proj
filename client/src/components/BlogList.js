@@ -43,9 +43,15 @@ function BlogList({ isLoading, setIsLoading }) {
             {isLoading ? <h1 style={{ position: "absolute", top: "30%", left: "45%" }}>Loading Blogs...</h1> : blogs.length > 0 ? blogs.map((blog) => {
                 return (
                     <div key={blog.id} className="blogs" name={blog.name}>
+<<<<<<< HEAD
                         <button onClick={() => favoriteBlog(blog.id)} style={{ float: "left" }}>Favorite This Blog</button>
                         <button onClick={() => nav(`/blogs/${blog.id}`)} style={{ float: "right" }}>View this Blogs Posts</button>
                         <h2 className="blog-title">{blog.name}</h2>
+=======
+                        <button onClick={() => favoriteBlog(blog.id)} className="favoriteButton">Favorite This Blog</button>
+                        <button onClick={() => nav(`/blogs/${blog.id}`)} className="viewBlogButton">View this Blogs Posts</button>
+                        <h2><strong>Title:</strong> {blog.name}</h2>
+>>>>>>> 9b820a7f357ee04049abe641b95775c81f9acb03
                         <p>
                             <strong>Description:</strong><br />
                             {blog.description}<br />
