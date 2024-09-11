@@ -25,7 +25,7 @@ function UserProfile() {
     const user = useSelector((state) => state.user.user);
     const allUserBlogs = useSelector((state) => state.userBlogs.userBlogs);
     const posts = useSelector((state) => state.posts.posts);
-    let userPosts = posts.filter((post) => post.user_id === user.id)
+    let userPosts = user ? posts.filter((post) => post.user_id === user.id) : null
 
     const dispatch = useDispatch();
 
