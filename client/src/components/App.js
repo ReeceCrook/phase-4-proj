@@ -13,6 +13,8 @@ import NewBlog from './NewBlog';
 import ViewBlog from './ViewBlog';
 import { setBlogs } from "../actions/blogActions"
 import { setUser } from "../actions/userActions"
+import { setPosts } from '../actions/postActions'
+
 
 function App() {
 
@@ -38,7 +40,18 @@ function App() {
       .then((r) => {
         dispatch(setBlogs(r))
         setIsLoading(false)
-      });
+      }).then(() => {
+        fetch("/post")
+          .then((r) => r.json())
+          .then((r) => {
+            dispatch(setPosts(r));
+            setIsLoading(false);
+          })
+          .catch((error) => {
+            console.error("Fetch error:", error);
+            setIsLoading(false);
+          });
+      })
   }, [dispatch]);
 
   function logout() {
